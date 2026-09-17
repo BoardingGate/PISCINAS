@@ -14,7 +14,7 @@
             print-color-adjust: exact !important;
         }
         .fila-impar {
-            background-color: #e2e8f0 !important; /* Slate 200 marcado */
+            background-color: #e2e8f0 !important; /* Slate 200 bien visible */
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
@@ -66,7 +66,6 @@
                 page-break-inside: avoid !important;
             }
 
-            /* FONDO DE LAS CASILLAS TRANSPARENTE PARA COPIAR EL COLOR DE LA FILA */
             .act-card {
                 border: 1px solid #64748b !important;
                 background-color: transparent !important;
@@ -90,20 +89,24 @@
                 display: none !important;
             }
 
-            /* 1. TRAMO DE HORAS (9:00 a 9:30) MUCHO MÁS GRANDE Y EN NEGRITA */
+            /* 1. TRAMO DE HORAS: EN NEGRITA PROFUNDA Y MÁS GRANDE */
             .celda-horario {
                 font-weight: 900 !important;
             }
-            .celda-horario input[type="time"] {
+            .celda-horario input[type="time"],
+            .celda-horario input[type="time"]::-webkit-datetime-edit,
+            .celda-horario input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+            .celda-horario input[type="time"]::-webkit-datetime-edit-text,
+            .celda-horario input[type="time"]::-webkit-datetime-edit-hour-field,
+            .celda-horario input[type="time"]::-webkit-datetime-edit-minute-field {
                 font-size: 13px !important;
                 font-weight: 900 !important;
                 color: #000000 !important;
-                width: auto !important;
             }
             .celda-horario .hora-conector {
-                font-size: 10.5px !important;
+                font-size: 11px !important;
                 font-weight: 900 !important;
-                color: #1e293b !important;
+                color: #000000 !important;
             }
             .celda-horario .duracion-badge {
                 font-size: 11px !important;
@@ -111,14 +114,18 @@
                 border: 1.5px solid #0e7490 !important;
             }
 
-            /* 2. PERÍODO DEL CALENDARIO EN LETRA MÁS GRANDE EN IMPRESIÓN */
+            /* 2. CABECERA: TÍTULO Y LITERAL "PERÍODO:" CON EL MISMO TAMAÑO DE FUENTE */
+            #cabecera-documento h1 {
+                font-size: 16px !important;
+                font-weight: 900 !important;
+            }
             .contenedor-periodo {
                 border: none !important;
                 background: transparent !important;
                 padding: 0 !important;
             }
             .etiqueta-periodo {
-                font-size: 13px !important;
+                font-size: 16px !important;
                 font-weight: 900 !important;
                 color: #0e7490 !important;
             }
@@ -126,25 +133,29 @@
                 font-size: 16px !important;
                 font-weight: 900 !important;
                 color: #0f172a !important;
-                width: 500px !important;
+                width: 450px !important;
             }
 
-            /* 3. PIE DE TOTALES DESTACADO Y MÁS GRANDE */
+            /* 3. PIE DE TOTALES: NOMBRE DEL EMPLEADO Y HORAS MÁS GRANDES */
             tfoot tr {
                 background-color: #cbd5e1 !important;
                 border-top: 3px solid #334155 !important;
             }
             tfoot td {
-                font-size: 11.5px !important;
+                font-size: 12px !important;
                 padding: 4px 5px !important;
             }
             #resumen-monitores div {
-                font-size: 11px !important;
-                padding: 2px 6px !important;
+                font-size: 11.5px !important;
+                padding: 2.5px 7px !important;
                 border: 1.5px solid #475569 !important;
             }
+            #resumen-monitores .nombre-monitor-total {
+                font-size: 13.5px !important;
+                font-weight: 900 !important;
+            }
             #resumen-monitores .total-horas-num {
-                font-size: 12.5px !important;
+                font-size: 13.5px !important;
                 font-weight: 900 !important;
             }
         }
@@ -206,7 +217,7 @@
                 <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste para no contabilizar sus horas.</p>
             </div>
             
-            <!-- PERÍODO DEL CALENDARIO (AMPLIADO EN IMPRESIÓN) -->
+            <!-- PERÍODO DEL CALENDARIO -->
             <div id="tour-fechas" class="contenedor-periodo flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded-lg">
                 <label class="etiqueta-periodo text-[10px] font-bold text-slate-500 uppercase">Período:</label>
                 <input type="text" id="semana-rango" onchange="actualizarRangoTexto(this.value)" class="input-periodo font-bold text-xs bg-transparent outline-none text-slate-800 w-64">
@@ -267,7 +278,7 @@
                         <i class="fa-solid fa-download text-cyan-700"></i> Guardar Copia en Escritorio
                     </h4>
                     <p class="text-[11px] text-slate-500">
-                        Descarga el archivo <strong>backup_piscina.json</strong> para guardarlo en tu equipo o en un USB.
+                        Descarga el archivo <strong>backup_piscina.json</strong>. Al guardarlo en el mismo sitio reemplaza la versión anterior sin duplicar archivos.
                     </p>
                     <button onclick="exportarBackupManual()" class="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-file-export"></i> Descargar backup_piscina.json
@@ -289,6 +300,7 @@
 
                 <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
                     <label class="flex items-center gap-2 cursor-pointer">
+                        <!-- MARCADO CON CHECKED POR DEFECTO -->
                         <input type="checkbox" id="check-autobackup" checked onchange="toggleAutoBackup(this.checked)" class="w-4 h-4 accent-amber-600 rounded">
                         <span class="text-xs font-bold text-slate-800">Descargar copia automática al entrar</span>
                     </label>
@@ -380,7 +392,7 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_V5';
+        const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_FINAL';
         const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 
         const PALETA_COLORES_ACTIVIDAD = [
@@ -439,7 +451,7 @@
             monitores: ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'],
             semanaActivaId: null,
             semanas: [],
-            config: { autoBackup: false }
+            config: { autoBackup: true } // ACTIVADO POR DEFECTO
         };
 
         let contextoAsignacion = null;
@@ -461,7 +473,7 @@
                 data.semanas = [];
             }
             if (!data.config || typeof data.config !== 'object') {
-                data.config = { autoBackup: true };
+                data.config = { autoBackup: true }; // ACTIVADO POR DEFECTO
             }
 
             data.semanas.forEach((sem, idx) => {
@@ -883,15 +895,15 @@
                             </td>
                         `;
 
-                        // COLUMNA DE HORARIOS: CON CLASES PARA RESALTAR TRAMO EN IMPRESIÓN
+                        // COLUMNA DE HORARIOS: CON NEGRITA DESTACADA EN PANTALLA Y EN IMPRESIÓN
                         let tdHorario = `
                             <td class="celda-horario p-1 border border-slate-300 text-center align-top font-sans" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
                                 <div class="flex flex-col items-center space-y-0.5">
                                     <input type="time" value="${fila.horaInicio || '09:00'}" onchange="actualizarHorario(${fIndex}, 'horaInicio', this.value)" 
-                                        class="border border-slate-300 rounded px-1 py-0.5 font-mono text-[11px] bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
-                                    <div class="hora-conector text-[8.5px] text-slate-500 font-bold uppercase">a</div>
+                                        class="border border-slate-300 rounded px-1.5 py-0.5 font-black text-xs text-slate-900 bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
+                                    <div class="hora-conector text-[9px] text-slate-600 font-black uppercase">a</div>
                                     <input type="time" value="${fila.horaFin || '10:00'}" onchange="actualizarHorario(${fIndex}, 'horaFin', this.value)" 
-                                        class="border border-slate-300 rounded px-1 py-0.5 font-mono text-[11px] bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
+                                        class="border border-slate-300 rounded px-1.5 py-0.5 font-black text-xs text-slate-900 bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
                                     <div class="duracion-badge mt-0.5 text-[9.5px] font-black text-cyan-950 bg-cyan-200/90 rounded py-0.5 w-23 text-center">
                                         ${horasSlot.toFixed(2)} h
                                     </div>
@@ -950,7 +962,6 @@
 
                                 const esPrimeraCelda = (fIndex === 0 && dIdx === 0 && actIndex === 0);
 
-                                // CASILLA CON FONDO TRANSPARENTE: ADOPTA EL MISMO COLOR DE LA FILA (BLANCO O GRIS)
                                 return `
                                     <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
                                         <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
@@ -1021,7 +1032,7 @@
             }
         }
 
-        // CÁLCULO DE TOTALES
+        // CÁLCULO DE TOTALES (CON NOMBRE DE MONITOR MÁS GRANDE)
         function calcularTotales() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
@@ -1052,11 +1063,12 @@
                 const mRestantes = Math.round(minutos % 60);
                 const colorMonitor = obtenerColorTextoMonitor(monitor);
 
+                // NOMBRE DEL MONITOR EN FUENTE MÁS GRANDE
                 return `
-                    <div class="bg-white px-1.5 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1">
-                        <span class="font-black text-[10.5px]" style="color: ${colorMonitor};">${monitor}:</span>
-                        <span class="total-horas-num text-slate-950 font-black text-[11px]">${horasDecimal}h</span>
-                        <span class="text-[9px] text-slate-500">(${hEnteras}h ${mRestantes}m)</span>
+                    <div class="bg-white px-2 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1.5">
+                        <span class="nombre-monitor-total font-black text-xs md:text-sm" style="color: ${colorMonitor};">${monitor}:</span>
+                        <span class="total-horas-num text-slate-950 font-black text-xs md:text-sm">${horasDecimal}h</span>
+                        <span class="text-[9.5px] text-slate-500 font-semibold">(${hEnteras}h ${mRestantes}m)</span>
                     </div>
                 `;
             }).join('');
@@ -1466,7 +1478,7 @@
                 icono: 'fa-shield-halved',
                 titulo: 'Copias de Seguridad',
                 descripcion: 'Descarga el archivo <strong>backup_piscina.json</strong> para salvaguardar todos los calendarios o trasladarlos a otro ordenador. Al guardarlo en el mismo sitio siempre se sobreescribe el anterior.',
-                tip: 'Puedes activar la casilla de copia automática diaria para que se descargue un respaldo cada día al abrir la web.'
+                tip: 'Viene configurado para realizar una copia automática diaria al entrar a la aplicación.'
             },
             {
                 targetId: 'tour-imprimir',
