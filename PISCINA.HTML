@@ -213,9 +213,14 @@
                 width: 420px !important;
             }
 
-            /* DATO DE LA ACTIVIDAD O DEL OPERARIO EN LA CABECERA (IMPRESIÓN) */
-            #badge-filtro-monitor,
-            #badge-filtro-actividad {
+            /* CORRECCIÓN: SOLO SE IMPRIMEN SI ESTÁN ACTIVAS (NO SI TIENEN LA CLASE HIDDEN) */
+            #badge-filtro-monitor.hidden,
+            #badge-filtro-actividad.hidden {
+                display: none !important;
+            }
+
+            #badge-filtro-monitor:not(.hidden),
+            #badge-filtro-actividad:not(.hidden) {
                 display: inline-flex !important;
                 border: 2.5px solid #92400e !important;
                 background-color: #fef08a !important;
