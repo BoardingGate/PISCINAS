@@ -58,6 +58,14 @@
             filter: grayscale(35%);
         }
 
+        /* EFECTO VISUAL DE DESTINO AL ARRASTRAR ACTIVIDADES (DRAG & DROP) */
+        .celda-drop-activa {
+            background-color: #cffafe !important; /* Cyan 100 suave */
+            outline: 2px dashed #0891b2 !important;
+            outline-offset: -2px;
+            transition: all 0.15s ease-in-out;
+        }
+
         /* AJUSTES PARA IMPRESIÓN COMPACTA EN 1 HOJA A4 HORIZONTAL */
         @media print {
             @page {
@@ -323,7 +331,7 @@
                 <h1 class="text-sm md:text-base font-black text-cyan-950 flex items-center gap-1.5">
                     <i class="fa-solid fa-person-swimming text-cyan-600"></i> ACTIVIDADES DIRIGIDAS - CONTROL DE HORAS
                 </h1>
-                <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste. Haz clic en un monitor o en una actividad para sombrearla (se mantiene al imprimir).</p>
+                <p class="text-[10px] text-slate-500">Arrastra las actividades con el icono ⋮⋮ para resituarlas de día u hora. Haz clic en un monitor o actividad para resaltarla.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
@@ -361,7 +369,7 @@
 
     </div>
 
-    <!-- MODAL DE AYUDA / TOUR (CON SCROLL Y LÍMITES SEGUROS) -->
+    <!-- MODAL DE AYUDA / TOUR -->
     <div id="tour-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden no-print transition-all duration-300"></div>
     
     <div id="tour-card" class="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-cyan-500 p-5 w-full max-w-md hidden no-print space-y-3 transition-all duration-200 max-h-[88vh] overflow-y-auto">
@@ -589,6 +597,7 @@
         let contextoAsignacion = null;
         let monitorResaltado = null;    // MONITOR ACTUALMENTE RESALTADO
         let actividadResaltada = null;  // ACTIVIDAD ACTUALMENTE RESALTADA (PERMANECE AL IMPRIMIR)
+        let draggedActivity = null;     // OBJETO ARRASTRADO (DRAG & DROP)
 
         function calcularDuracionHoras(inicio, fin) {
             if (!inicio || !fin) return 0;
@@ -976,7 +985,6 @@
         function aplicarResalteActividadEnDOM(texto) {
             const contenedorTabla = document.querySelector('.print-table')?.parentElement;
 
-            // Limpiar clases previas de actividad
             document.querySelectorAll('.act-card-resaltado-actividad').forEach(el => {
                 el.classList.remove('act-card-resaltado-actividad');
             });
@@ -1021,6 +1029,97 @@
         function desmarcarActividad() {
             actividadResaltada = null;
             aplicarResalteActividadEnDOM('');
+            render();
+        }
+
+        // ==========================================================
+        // --- FUNCIONES DE ARRASTRAR Y SOLTAR (DRAG & DROP) ---
+        // ==========================================================
+        function manejarDragStart(e, fIndex, dia, actIndex) {
+            // Si el usuario intentó seleccionar texto dentro del input o pulsar un botón, no arrastramos
+            if (['INPUT', 'BUTTON', 'LABEL', 'SELECT'].includes(e.target.tagName) || e.target.closest('input') || e.target.closest('button')) {
+                e.preventDefault();
+                return false;
+            }
+
+            draggedActivity = { fIndex, dia, actIndex };
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', JSON.stringify(draggedActivity));
+
+            // Indicador semitransparente mientras se desplaza
+            setTimeout(() => {
+                const elem = e.currentTarget || e.target;
+                if (elem && elem.classList) {
+                    elem.classList.add('opacity-40', 'scale-95');
+                }
+            }, 0);
+        }
+
+        function manejarDragEnd(e) {
+            draggedActivity = null;
+            document.querySelectorAll('.act-card').forEach(c => c.classList.remove('opacity-40', 'scale-95'));
+            document.querySelectorAll('.celda-dia-drop').forEach(td => td.classList.remove('celda-drop-activa'));
+        }
+
+        function manejarDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const td = e.currentTarget;
+            if (td && !td.classList.contains('celda-drop-activa')) {
+                td.classList.add('celda-drop-activa');
+            }
+        }
+
+        function manejarDragLeave(e) {
+            const td = e.currentTarget;
+            if (e.relatedTarget && !td.contains(e.relatedTarget)) {
+                td.classList.remove('celda-drop-activa');
+            }
+        }
+
+        function manejarDrop(e, destFIndex, destDia, targetActIndex = null) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll('.celda-dia-drop').forEach(td => td.classList.remove('celda-drop-activa'));
+
+            let data = draggedActivity;
+            if (!data) {
+                try {
+                    data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                } catch(err) {}
+            }
+            if (!data) return;
+
+            const { fIndex: origFIndex, dia: origDia, actIndex: origActIndex } = data;
+
+            // Si es exactamente la misma posición, no hacemos cambios
+            if (origFIndex === destFIndex && origDia === destDia && (targetActIndex === null || targetActIndex === origActIndex)) {
+                return;
+            }
+
+            const semana = obtenerSemanaActiva();
+            if (!semana || !semana.filas) return;
+
+            const listaOrigen = semana.filas[origFIndex]?.dias[origDia];
+            if (!listaOrigen || !listaOrigen[origActIndex]) return;
+
+            // 1. Extraer la actividad del origen
+            const [actividadMovida] = listaOrigen.splice(origActIndex, 1);
+
+            // 2. Insertar en destino
+            if (!semana.filas[destFIndex].dias[destDia]) {
+                semana.filas[destFIndex].dias[destDia] = [];
+            }
+            const listaDestino = semana.filas[destFIndex].dias[destDia];
+
+            if (targetActIndex !== null && targetActIndex >= 0 && targetActIndex <= listaDestino.length) {
+                listaDestino.splice(targetActIndex, 0, actividadMovida);
+            } else {
+                listaDestino.push(actividadMovida);
+            }
+
+            draggedActivity = null;
+            guardar();
             render();
         }
 
@@ -1247,8 +1346,20 @@
                                 const claseResaltado = tieneMonitorResaltado ? 'act-card-resaltado' : (esActividadMarcada ? 'act-card-resaltado-actividad' : '');
 
                                 return `
-                                    <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5 transition-all ${claseResaltado}" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
+                                    <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5 transition-all ${claseResaltado}" 
+                                        ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}
+                                        draggable="true"
+                                        ondragstart="manejarDragStart(event, ${fIndex}, '${dia}', ${actIndex})"
+                                        ondragend="manejarDragEnd(event)"
+                                        ondrop="manejarDrop(event, ${fIndex}, '${dia}', ${actIndex})">
+                                        
                                         <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
+                                            <!-- ASIDERO DE ARRASTRE PARA RESITUAR ACTIVIDAD -->
+                                            <span class="cursor-grab active:cursor-grabbing text-slate-400 hover:text-cyan-700 no-print mr-0.5 shrink-0 select-none" 
+                                                  title="Pincha y arrastra para mover a otro día u hora">
+                                                <i class="fa-solid fa-grip-vertical text-[10px]"></i>
+                                            </span>
+
                                             <!-- INPUT CON DETECCIÓN PERMANENTE QUE SE MANTIENE AL IMPRIMIR -->
                                             <input type="text" value="${act.actividad || ''}" placeholder="Actividad..." 
                                                 onfocus="manejarFocoActividad(this)"
@@ -1285,7 +1396,10 @@
                             }).join('');
 
                             return `
-                                <td class="p-1 border border-slate-300 align-top">
+                                <td class="celda-dia-drop p-1 border border-slate-300 align-top transition-all"
+                                    ondragover="manejarDragOver(event)"
+                                    ondragleave="manejarDragLeave(event)"
+                                    ondrop="manejarDrop(event, ${fIndex}, '${dia}')">
                                     <div>${actsHtml}</div>
                                     ${actividades.length === 0 ? `
                                         <button onclick="agregarActividad(${fIndex}, '${dia}')" class="w-full border border-dashed border-cyan-400 bg-white hover:bg-cyan-50 text-cyan-800 rounded py-0.5 text-[9px] font-semibold flex items-center justify-center gap-0.5 transition no-print shadow-2xs">
@@ -1814,9 +1928,9 @@
             },
             {
                 targetId: 'tour-actividad-card',
-                icono: 'fa-user-check',
-                titulo: 'Asignación, Asistencia y Resalte Automático',
-                descripcion: '<strong>Sombreado de actividad:</strong> Al hacer clic o escribir en el nombre de cualquier clase, ¡se sombrerán en amarillo todas las casillas donde se imparte esa misma actividad, conservándose intacto al imprimir!<br><br><strong>Colores únicos:</strong> Tanto las actividades como los monitores tienen colores de texto exclusivos para identificarlos al instante.',
+                icono: 'fa-arrows-up-down-left-right',
+                titulo: 'Arrastrar Actividades (Drag & Drop)',
+                descripcion: '<strong>¡Ahora puedes mover actividades libremente!</strong> Pincha en el icono de puntos (⋮⋮) de cualquier actividad y arrástrala hacia otro día o hacia otra hora para resituarla al instante.<br><br>El cómputo de horas del monitor se ajusta automáticamente según la duración de la nueva franja.',
                 tip: 'Para añadir otra actividad simultánea en la misma franja horaria (ej: dos salas a la vez), pulsa el botón verde (+) de la cabecera.'
             },
             {
@@ -1908,8 +2022,7 @@
 
             let top, left;
 
-            // Si el elemento a resaltar está en la mitad inferior de la pantalla (como el pie de totales),
-            // colocamos la tarjeta ARRIBA del elemento para no tapar los controles y evitar desbordes.
+            // Si el elemento a resaltar está en la mitad inferior de la pantalla, colocamos la tarjeta ARRIBA
             if (rect.top > windowHeight * 0.45) {
                 top = rect.top - cardHeight - 16;
             } else {
