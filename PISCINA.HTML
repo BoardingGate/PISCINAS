@@ -181,7 +181,7 @@
                 border: 1.5px solid #0e7490 !important;
             }
 
-            /* 2. CABECERA: TÍTULO Y LITERAL "PERÍODO:" CON EL MISMO TAMAÑO DE FUENTE */
+            /* 2. CABECERA: TÍTULO, PERÍODO Y DATO DEL OPERARIO DESTACADOS EN GRANDE */
             #cabecera-documento h1 {
                 font-size: 16px !important;
                 font-weight: 900 !important;
@@ -200,7 +200,42 @@
                 font-size: 16px !important;
                 font-weight: 900 !important;
                 color: #0f172a !important;
-                width: 450px !important;
+                width: 420px !important;
+            }
+
+            /* MEJORA 1: DATO DEL OPERARIO EN LA CABECERA CON FUENTE GRANDE Y VISIBLE */
+            #badge-filtro-monitor {
+                display: inline-flex !important;
+                border: 2.5px solid #92400e !important;
+                background-color: #fef08a !important;
+                padding: 3px 12px !important;
+                border-radius: 8px !important;
+                gap: 6px !important;
+                align-items: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #badge-filtro-monitor i {
+                font-size: 16px !important;
+                color: #b45309 !important;
+            }
+            #badge-filtro-monitor .texto-filtro-label {
+                font-size: 16px !important;
+                font-weight: 900 !important;
+                color: #78350f !important;
+                text-transform: uppercase !important;
+            }
+            #badge-filtro-monitor strong {
+                font-size: 18px !important;
+                font-weight: 900 !important;
+                color: #000000 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+            }
+            #badge-filtro-monitor .horas-filtro-total {
+                font-size: 16px !important;
+                font-weight: 900 !important;
+                color: #92400e !important;
             }
 
             /* 3. PIE DE TOTALES: NOMBRE DEL EMPLEADO Y HORAS MÁS GRANDES */
@@ -284,11 +319,13 @@
                 <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste para no contabilizar sus horas. Haz clic en un monitor en el pie para resaltar sus clases.</p>
             </div>
 
-            <!-- CHIP DE RESALTE ACTIVO -->
-            <div id="badge-filtro-monitor" class="hidden flex items-center gap-1.5 bg-amber-100 border border-amber-400 text-amber-950 px-2 py-1 rounded-lg text-xs font-bold shadow-2xs">
-                <i class="fa-solid fa-highlighter text-amber-600"></i>
-                <span>Horas de: <strong id="nombre-monitor-filtrado" class="font-black text-amber-900"></strong></span>
-                <button onclick="toggleResaltarMonitor(null)" title="Quitar resalte" class="ml-1 text-amber-700 hover:text-black no-print transition">
+            <!-- CHIP DE RESALTE ACTIVO (EN PANTALLA Y EN IMPRESIÓN DESTACADO) -->
+            <div id="badge-filtro-monitor" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
+                <i class="fa-solid fa-highlighter text-amber-600 text-sm md:text-base"></i>
+                <span class="texto-filtro-label">Horas de:</span>
+                <strong id="nombre-monitor-filtrado" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
+                <span id="horas-monitor-filtrado" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
+                <button onclick="toggleResaltarMonitor(null)" title="Quitar resalte" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm">
                     <i class="fa-solid fa-circle-xmark"></i>
                 </button>
             </div>
@@ -304,10 +341,10 @@
 
     </div>
 
-    <!-- MODAL DE AYUDA / TOUR -->
+    <!-- MODAL DE AYUDA / TOUR (CON SCROLL Y LÍMITES SEGUROS PARA QUE SIEMPRE SE VEA) -->
     <div id="tour-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden no-print transition-all duration-300"></div>
     
-    <div id="tour-card" class="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-cyan-500 p-5 w-full max-w-md hidden no-print space-y-3 transition-all duration-300">
+    <div id="tour-card" class="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-cyan-500 p-5 w-full max-w-md hidden no-print space-y-3 transition-all duration-200 max-h-[88vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b pb-2">
             <span id="tour-paso-badge" class="bg-cyan-100 text-cyan-800 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full"></span>
             <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-sm">
@@ -329,7 +366,7 @@
                 <button id="tour-btn-ant" onclick="cambiarPasoTour(-1)" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
                     Anterior
                 </button>
-                <button id="tour-btn-sig" onclick="cambiarPasoTour(1)" class="px-3.5 py-1 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition">
+                <button id="tour-btn-sig" onclick="cambiarPasoTour(1)" class="px-3.5 py-1 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition shadow-2xs">
                     Siguiente
                 </button>
             </div>
@@ -921,13 +958,34 @@
                 const inpRango = document.getElementById('semana-rango');
                 if (inpRango) inpRango.value = semana.rango || '';
 
-                // GESTIÓN DEL CHIP DE FILTRO / RESALTE ACTIVO
+                // CÁLCULO DE HORAS DEL MONITOR RESALTADO PARA MOSTRAR EN CABECERA
+                let totalHorasMonitor = 0;
+                if (monitorResaltado) {
+                    let minutosTotal = 0;
+                    (semana.filas || []).forEach(f => {
+                        const h = calcularDuracionHoras(f.horaInicio, f.horaFin);
+                        DIAS.forEach(d => {
+                            (f.dias[d] || []).forEach(act => {
+                                (act.monitores || []).forEach(m => {
+                                    if (m.monitor.toLowerCase() === monitorResaltado.toLowerCase() && m.asiste) {
+                                        minutosTotal += (h * 60);
+                                    }
+                                });
+                            });
+                        });
+                    });
+                    totalHorasMonitor = (minutosTotal / 60).toFixed(2);
+                }
+
+                // GESTIÓN DEL CHIP DE FILTRO / RESALTE ACTIVO EN CABECERA
                 const badgeFiltro = document.getElementById('badge-filtro-monitor');
                 const spanFiltro = document.getElementById('nombre-monitor-filtrado');
+                const horasFiltro = document.getElementById('horas-monitor-filtrado');
                 if (badgeFiltro && spanFiltro) {
                     if (monitorResaltado) {
                         badgeFiltro.classList.remove('hidden');
-                        spanFiltro.textContent = monitorResaltado;
+                        spanFiltro.textContent = monitorResaltado.toUpperCase();
+                        if (horasFiltro) horasFiltro.textContent = `— ${totalHorasMonitor}h`;
                     } else {
                         badgeFiltro.classList.add('hidden');
                     }
@@ -1602,7 +1660,7 @@
                 targetId: 'tour-imprimir',
                 icono: 'fa-print',
                 titulo: 'Imprimir o Guardar en PDF',
-                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has seleccionado a un monitor en el pie, sus clases saldrán destacadas en papel exactamente como en pantalla.',
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has seleccionado a un monitor en el pie, sus clases y su nombre en la cabecera saldrán en tamaño grande y destacados en papel.',
                 tip: 'Elige la opción "Guardar como PDF" en tu navegador para enviárselo directamente a dicho monitor.'
             },
             {
@@ -1639,6 +1697,8 @@
             pasoTourActual = 0;
             document.getElementById('tour-overlay').classList.remove('hidden');
             document.getElementById('tour-card').classList.remove('hidden');
+            
+            window.addEventListener('resize', reposicionarTourActivo);
             actualizarPasoTour();
         }
 
@@ -1648,6 +1708,7 @@
 
             document.getElementById('tour-overlay').classList.add('hidden');
             document.getElementById('tour-card').classList.add('hidden');
+            window.removeEventListener('resize', reposicionarTourActivo);
         }
 
         function cambiarPasoTour(delta) {
@@ -1658,6 +1719,13 @@
                 return;
             }
             actualizarPasoTour();
+        }
+
+        function reposicionarTourActivo() {
+            const paso = pasosTour[pasoTourActual];
+            if (!paso) return;
+            const elem = document.getElementById(paso.targetId) || document.querySelector('header');
+            if (elem) posicionarTarjetaTour(elem);
         }
 
         function actualizarPasoTour() {
@@ -1672,7 +1740,8 @@
 
             if (elem) {
                 elem.classList.add('tour-highlight');
-                elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Scroll instantáneo seguro para evitar desfases de cálculo
+                elem.scrollIntoView({ behavior: 'auto', block: 'nearest' });
             }
 
             document.getElementById('tour-paso-badge').textContent = `Paso ${pasoTourActual + 1} de ${pasosTour.length}`;
@@ -1687,11 +1756,14 @@
             btnSig.textContent = pasoTourActual === pasosTour.length - 1 ? 'Finalizar' : 'Siguiente';
 
             posicionarTarjetaTour(elem);
+            // Reposicionamiento de seguridad en el siguiente frame
+            requestAnimationFrame(() => posicionarTarjetaTour(elem));
         }
 
+        // MEJORA 2: POSICIONAMIENTO QUE GARANTIZA QUE LA TARJETA NUNCA QUEDE FUERA DEL VISOR
         function posicionarTarjetaTour(targetElem) {
             const card = document.getElementById('tour-card');
-            if (!targetElem) return;
+            if (!targetElem || !card) return;
 
             const rect = targetElem.getBoundingClientRect();
             const cardHeight = card.offsetHeight || 220;
@@ -1701,17 +1773,23 @@
 
             let top, left;
 
-            if (rect.bottom + cardHeight + 20 < windowHeight) {
-                top = rect.bottom + 12;
-            } else if (rect.top - cardHeight - 20 > 0) {
-                top = rect.top - cardHeight - 12;
+            // Si el elemento a resaltar está en la mitad inferior de la pantalla (como el pie de totales),
+            // colocamos la tarjeta ARRIBA del elemento para no tapar los controles y evitar desbordes.
+            if (rect.top > windowHeight * 0.45) {
+                top = rect.top - cardHeight - 16;
             } else {
-                top = (windowHeight - cardHeight) / 2;
+                top = rect.bottom + 16;
             }
 
+            // Centrado horizontal con respecto al elemento objetivo
             left = rect.left + (rect.width / 2) - (cardWidth / 2);
-            if (left < 15) left = 15;
-            if (left + cardWidth > windowWidth - 15) left = windowWidth - cardWidth - 15;
+
+            // LIMITADORES ESTRICTOS: NUNCA se saldrá del marco de la pantalla
+            const maxTop = Math.max(12, windowHeight - cardHeight - 14);
+            top = Math.max(12, Math.min(top, maxTop));
+
+            const maxLeft = Math.max(12, windowWidth - cardWidth - 14);
+            left = Math.max(12, Math.min(left, maxLeft));
 
             card.style.top = `${top}px`;
             card.style.left = `${left}px`;
