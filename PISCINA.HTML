@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividades Dirigidas - Control de Horas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CONTRASTE ACENTUADO DE FILAS */
+        .fila-par {
+            background-color: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .fila-impar {
+            background-color: #e2e8f0 !important; /* Slate 200 marcado */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .tour-highlight {
+            position: relative !important;
+            z-index: 45 !important;
+            box-shadow: 0 0 0 4px #06b6d4, 0 0 20px rgba(6, 182, 212, 0.6) !important;
+            border-radius: 6px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* AJUSTES PARA IMPRESIÓN COMPACTA EN 1 HOJA A4 HORIZONTAL */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 4mm 5mm !important;
+            }
+            html, body {
+                width: 100% !important;
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                font-size: 8px !important;
+                zoom: 84%;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .max-w-\[1600px\] {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .print-table {
+                width: 100% !important;
+                min-width: 0 !important;
+                table-layout: fixed !important;
+                page-break-inside: avoid !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                border: 1px solid #64748b !important;
+                padding: 2px 2px !important;
+                page-break-inside: avoid !important;
+            }
+
+            /* FONDO DE LAS CASILLAS TRANSPARENTE PARA COPIAR EL COLOR DE LA FILA */
+            .act-card {
+                border: 1px solid #64748b !important;
+                background-color: transparent !important;
+                padding: 1.5px 2px !important;
+                margin-bottom: 2px !important;
+                border-radius: 3px !important;
+            }
+            .mon-badge {
+                background-color: transparent !important;
+                border: 1px solid #94a3b8 !important;
+            }
+
+            input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            input[type="time"]::-webkit-calendar-picker-indicator {
+                display: none !important;
+            }
+
+            /* 1. TRAMO DE HORAS (9:00 a 9:30) MUCHO MÁS GRANDE Y EN NEGRITA */
+            .celda-horario {
+                font-weight: 900 !important;
+            }
+            .celda-horario input[type="time"] {
+                font-size: 13px !important;
+                font-weight: 900 !important;
+                color: #000000 !important;
+                width: auto !important;
+            }
+            .celda-horario .hora-conector {
+                font-size: 10.5px !important;
+                font-weight: 900 !important;
+                color: #1e293b !important;
+            }
+            .celda-horario .duracion-badge {
+                font-size: 11px !important;
+                font-weight: 900 !important;
+                border: 1.5px solid #0e7490 !important;
+            }
+
+            /* 2. PERÍODO DEL CALENDARIO EN LETRA MÁS GRANDE EN IMPRESIÓN */
+            .contenedor-periodo {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+            }
+            .etiqueta-periodo {
+                font-size: 13px !important;
+                font-weight: 900 !important;
+                color: #0e7490 !important;
+            }
+            .input-periodo {
+                font-size: 16px !important;
+                font-weight: 900 !important;
+                color: #0f172a !important;
+                width: 500px !important;
+            }
+
+            /* 3. PIE DE TOTALES DESTACADO Y MÁS GRANDE */
+            tfoot tr {
+                background-color: #cbd5e1 !important;
+                border-top: 3px solid #334155 !important;
+            }
+            tfoot td {
+                font-size: 11.5px !important;
+                padding: 4px 5px !important;
+            }
+            #resumen-monitores div {
+                font-size: 11px !important;
+                padding: 2px 6px !important;
+                border: 1.5px solid #475569 !important;
+            }
+            #resumen-monitores .total-horas-num {
+                font-size: 12.5px !important;
+                font-weight: 900 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans p-2 md:p-4 min-h-screen">
+
+    <div class="max-w-[1600px] mx-auto space-y-2.5">
+
+        <!-- BARRA SUPERIOR DE CONTROL -->
+        <header class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 justify-between items-center no-print">
+            
+            <div id="tour-semanas" class="flex items-center gap-1.5 p-1 rounded-lg">
+                <button onclick="cambiarSemana(-1)" title="Semana anterior" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <select id="select-semanas" onchange="seleccionarSemana(this.value)" class="border border-slate-300 font-semibold rounded-lg p-1 bg-white text-cyan-900 outline-none text-xs max-w-xs"></select>
+                <button onclick="cambiarSemana(1)" title="Semana siguiente" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+                <button onclick="borrarSemanaActual()" title="Eliminar este calendario" class="ml-1 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1 transition">
+                    <i class="fa-solid fa-trash-can"></i> Borrar
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button id="tour-nuevo" onclick="crearSemanaEnBlanco()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                    <i class="fa-solid fa-file-circle-plus"></i> Nuevo en Blanco
+                </button>
+
+                <button id="tour-clonar" onclick="clonarSemanaActual()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                    <i class="fa-solid fa-clone"></i> Clonar Semana
+                </button>
+
+                <button id="tour-monitores" onclick="abrirModalGestionMonitores()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                    <i class="fa-solid fa-users-gear"></i> Monitores
+                </button>
+
+                <button id="tour-backup" onclick="abrirModalBackup()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                    <i class="fa-solid fa-shield-halved"></i> Copia / Backup
+                </button>
+
+                <button id="tour-imprimir" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                    <i class="fa-solid fa-print"></i> Imprimir en 1 Hoja
+                </button>
+
+                <button onclick="iniciarTourAyuda()" class="bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs" title="Ver guía interactiva">
+                    <i class="fa-solid fa-circle-question"></i> Ayuda
+                </button>
+            </div>
+        </header>
+
+        <!-- CABECERA DEL DOCUMENTO -->
+        <div id="cabecera-documento" class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-2">
+            <div>
+                <h1 class="text-sm md:text-base font-black text-cyan-950 flex items-center gap-1.5">
+                    <i class="fa-solid fa-person-swimming text-cyan-600"></i> ACTIVIDADES DIRIGIDAS - CONTROL DE HORAS
+                </h1>
+                <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste para no contabilizar sus horas.</p>
+            </div>
+            
+            <!-- PERÍODO DEL CALENDARIO (AMPLIADO EN IMPRESIÓN) -->
+            <div id="tour-fechas" class="contenedor-periodo flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded-lg">
+                <label class="etiqueta-periodo text-[10px] font-bold text-slate-500 uppercase">Período:</label>
+                <input type="text" id="semana-rango" onchange="actualizarRangoTexto(this.value)" class="input-periodo font-bold text-xs bg-transparent outline-none text-slate-800 w-64">
+            </div>
+        </div>
+
+        <div id="contenedor-principal"></div>
+
+    </div>
+
+    <!-- MODAL DE AYUDA / TOUR -->
+    <div id="tour-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden no-print transition-all duration-300"></div>
+    
+    <div id="tour-card" class="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-cyan-500 p-5 w-full max-w-md hidden no-print space-y-3 transition-all duration-300">
+        <div class="flex justify-between items-center border-b pb-2">
+            <span id="tour-paso-badge" class="bg-cyan-100 text-cyan-800 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full"></span>
+            <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="space-y-1.5">
+            <h3 id="tour-titulo" class="text-sm font-bold text-slate-800 flex items-center gap-2"></h3>
+            <p id="tour-descripcion" class="text-xs text-slate-600 leading-relaxed"></p>
+            <div id="tour-tip" class="bg-amber-50 border-l-4 border-amber-400 p-2 text-[11px] text-amber-900 rounded"></div>
+        </div>
+
+        <div class="flex justify-between items-center pt-2 border-t">
+            <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">
+                Saltar guía
+            </button>
+            <div class="flex gap-1.5">
+                <button id="tour-btn-ant" onclick="cambiarPasoTour(-1)" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
+                    Anterior
+                </button>
+                <button id="tour-btn-sig" onclick="cambiarPasoTour(1)" class="px-3.5 py-1 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BACKUP -->
+    <div id="modal-backup" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-600"></i> Copias de Seguridad
+                </h3>
+                <button onclick="cerrarModalBackup()" class="text-slate-400 hover:text-slate-600 text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                    <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-download text-cyan-700"></i> Guardar Copia en Escritorio
+                    </h4>
+                    <p class="text-[11px] text-slate-500">
+                        Descarga el archivo <strong>backup_piscina.json</strong> para guardarlo en tu equipo o en un USB.
+                    </p>
+                    <button onclick="exportarBackupManual()" class="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-file-export"></i> Descargar backup_piscina.json
+                    </button>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                    <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-upload text-indigo-700"></i> Restaurar / Cambiar de Equipo
+                    </h4>
+                    <p class="text-[11px] text-slate-500">
+                        Carga el archivo <strong>backup_piscina.json</strong> para recuperar tus datos o trasladarlos a otro ordenador.
+                    </p>
+                    <label class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                        <i class="fa-solid fa-folder-open"></i> Seleccionar backup_piscina.json...
+                        <input type="file" id="input-archivo-backup" accept=".json" onchange="importarBackup(event)" class="hidden">
+                    </label>
+                </div>
+
+                <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="check-autobackup" checked onchange="toggleAutoBackup(this.checked)" class="w-4 h-4 accent-amber-600 rounded">
+                        <span class="text-xs font-bold text-slate-800">Descargar copia automática al entrar</span>
+                    </label>
+                    <p class="text-[10px] text-slate-500 ml-6">
+                        Descarga automáticamente <strong>backup_piscina.json</strong> una vez al día al abrir la aplicación.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-1">
+                <button onclick="cerrarModalBackup()" class="px-3.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MONITORES -->
+    <div id="modal-gestion-monitores" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-cyan-600"></i> Gestión de Monitores
+                </h3>
+                <button onclick="cerrarModalGestionMonitores()" class="text-slate-400 hover:text-slate-600 text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="agregarMonitorGlobal(event)" class="flex gap-2">
+                <input type="text" id="nuevo-monitor-nombre" placeholder="Nombre..." required 
+                    class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
+                <button type="submit" class="bg-cyan-700 hover:bg-cyan-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+                    Añadir
+                </button>
+            </form>
+
+            <div class="max-h-60 overflow-y-auto divide-y divide-slate-100 border rounded-lg p-2" id="lista-monitores-modal"></div>
+
+            <div class="flex justify-end pt-1">
+                <button onclick="cerrarModalGestionMonitores()" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ASIGNAR MONITORES -->
+    <div id="modal-asignar-monitores" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Asignar Monitor(es)</h3>
+                    <p id="subtitulo-asignar" class="text-[11px] text-slate-500 truncate"></p>
+                </div>
+                <button onclick="cerrarModalAsignar()" class="text-slate-400 hover:text-slate-600 text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Escribe números o nombres separados por coma:
+                    </label>
+                    <input type="text" id="input-asignar-monitores" 
+                        placeholder="Ej: 1, 3  ó  Julia, Diego" 
+                        class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
+                    <p class="text-[10px] text-slate-400 mt-1">
+                        * Puedes escribir el número (1, 2) o su nombre. Si escribes uno que no existe, se creará solo.
+                    </p>
+                </div>
+
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-600 block mb-1">Seleccionar con clic:</span>
+                    <div id="badges-monitores-disponibles" class="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-1.5 border rounded-lg bg-slate-50"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-1.5 pt-2 border-t">
+                <button onclick="cerrarModalAsignar()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
+                    Cancelar
+                </button>
+                <button onclick="procesarAsignacionMonitores()" class="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_V5';
+        const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+
+        const PALETA_COLORES_ACTIVIDAD = [
+            '#dc2626', '#2563eb', '#16a34a', '#0d9488', '#7c3aed', 
+            '#db2777', '#ea580c', '#d97706', '#4f46e5', '#059669', 
+            '#991b1b', '#0284c7', '#b91c1c'
+        ];
+
+        function obtenerColorTextoActividad(nombre) {
+            if (!nombre || !nombre.trim()) return '#0f172a';
+            const clean = nombre.trim().toUpperCase();
+            
+            if (clean.includes('PUMP')) return '#dc2626';
+            if (clean.includes('PILATES')) return '#2563eb';
+            if (clean.includes('MAYORES')) return '#16a34a';
+            if (clean.includes('CICLO')) return '#0d9488';
+            if (clean.includes('CORE')) return '#7c3aed';
+            if (clean.includes('ZUMBA')) return '#db2777';
+            if (clean.includes('STEP')) return '#ea580c';
+            if (clean.includes('CROSS')) return '#d97706';
+            if (clean.includes('GAP')) return '#4f46e5';
+            if (clean.includes('COMBAT')) return '#991b1b';
+            if (clean.includes('ESTIRAMIENTOS') || clean.includes('BALANCE')) return '#059669';
+
+            let hash = 0;
+            for (let i = 0; i < clean.length; i++) {
+                hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return PALETA_COLORES_ACTIVIDAD[Math.abs(hash) % PALETA_COLORES_ACTIVIDAD.length];
+        }
+
+        const PALETA_COLORES_MONITOR = [
+            '#7e22ce', '#0369a1', '#047857', '#c2410c', '#4338ca', 
+            '#b45309', '#be123c', '#0f766e', '#1d4ed8', '#a21caf', '#334155'
+        ];
+
+        function obtenerColorTextoMonitor(nombre) {
+            if (!nombre || !nombre.trim()) return '#334155';
+            const clean = nombre.trim().toUpperCase();
+
+            if (clean.includes('JULIA')) return '#7e22ce';
+            if (clean.includes('DIEGO')) return '#0369a1';
+            if (clean.includes('FRAN')) return '#047857';
+            if (clean.includes('ALBERTO')) return '#c2410c';
+            if (clean.includes('LVARO')) return '#4338ca';
+            if (clean.includes('JACOBO')) return '#b45309';
+
+            let hash = 0;
+            for (let i = 0; i < clean.length; i++) {
+                hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return PALETA_COLORES_MONITOR[Math.abs(hash) % PALETA_COLORES_MONITOR.length];
+        }
+
+        let appData = {
+            monitores: ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'],
+            semanaActivaId: null,
+            semanas: [],
+            config: { autoBackup: false }
+        };
+
+        let contextoAsignacion = null;
+
+        function calcularDuracionHoras(inicio, fin) {
+            if (!inicio || !fin) return 0;
+            const [h1, m1] = inicio.split(':').map(Number);
+            const [h2, m2] = fin.split(':').map(Number);
+            const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+            return diff > 0 ? diff / 60 : 0;
+        }
+
+        function sanitizarEstructura(data) {
+            if (!data || typeof data !== 'object') data = {};
+            if (!Array.isArray(data.monitores) || data.monitores.length === 0) {
+                data.monitores = ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'];
+            }
+            if (!Array.isArray(data.semanas)) {
+                data.semanas = [];
+            }
+            if (!data.config || typeof data.config !== 'object') {
+                data.config = { autoBackup: true };
+            }
+
+            data.semanas.forEach((sem, idx) => {
+                if (!sem.id) sem.id = 'sem_' + Date.now() + '_' + idx;
+                if (!sem.rango) sem.rango = 'Semana ' + (idx + 1);
+                if (!Array.isArray(sem.filas)) sem.filas = [];
+
+                sem.filas.forEach(f => {
+                    if (!f.horaInicio) f.horaInicio = '09:00';
+                    if (!f.horaFin) f.horaFin = '10:00';
+                    if (!f.dias || typeof f.dias !== 'object') f.dias = {};
+
+                    DIAS.forEach(d => {
+                        if (!Array.isArray(f.dias[d])) {
+                            f.dias[d] = [];
+                        }
+                        f.dias[d] = f.dias[d].filter(act => act && typeof act === 'object');
+                        f.dias[d].forEach(act => {
+                            if (typeof act.actividad !== 'string') act.actividad = '';
+                            if (typeof act.sala !== 'string') act.sala = '';
+                            if (!Array.isArray(act.monitores)) act.monitores = [];
+                        });
+                    });
+                });
+            });
+
+            if (data.semanas.length > 0) {
+                const existe = data.semanas.some(s => s.id === data.semanaActivaId);
+                if (!existe) data.semanaActivaId = data.semanas[0].id;
+            } else {
+                data.semanaActivaId = null;
+            }
+
+            return data;
+        }
+
+        function inicializar() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    appData = sanitizarEstructura(JSON.parse(raw));
+                }
+            } catch (e) {
+                console.warn('Iniciando con estructura limpia:', e);
+            }
+
+            if (!appData.semanas || appData.semanas.length === 0) {
+                cargarPlantillaOficialDesdeImagen();
+            }
+
+            guardar();
+            render();
+            configurarEventos();
+            verificarAutoBackupAlEntrar();
+        }
+
+        function guardar() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            } catch (e) {
+                console.error('Error guardando en localStorage:', e);
+            }
+        }
+
+        function obtenerSemanaActiva() {
+            if (!appData.semanas || appData.semanas.length === 0) return null;
+            return appData.semanas.find(s => s.id === appData.semanaActivaId) || appData.semanas[0];
+        }
+
+        function cargarPlantillaOficialDesdeImagen() {
+            appData.monitores = ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'];
+            
+            const nueva = {
+                id: 'sem_' + Date.now(),
+                rango: 'A PARTIR DEL 12 SEPTIEMBRE 2026',
+                filas: [
+                    {
+                        id: 'f_900', horaInicio: '09:00', horaFin: '09:30',
+                        dias: {
+                            lunes: [{ actividad: 'MAYORES EN FORMA', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            martes: [{ actividad: 'PILATES', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            miercoles: [{ actividad: 'MAYORES EN FORMA', sala: 'S7', monitores: [{ monitor: 'Fran', asiste: true }] }],
+                            jueves: [{ actividad: 'PILATES', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            viernes: [{ actividad: 'MAYORES EN FORMA', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_930', horaInicio: '09:30', horaFin: '10:00',
+                        dias: {
+                            lunes: [{ actividad: "30' CORE", sala: 'S3', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            martes: [{ actividad: "30' CROSS TRAINING", sala: 'S2', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            miercoles: [{ actividad: "30' CORE", sala: 'S3', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            jueves: [{ actividad: "30'GAP", sala: 'S3', monitores: [{ monitor: 'Alberto', asiste: true }] }],
+                            viernes: [{ actividad: "30' CROSS TRAINING", sala: 'S2', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_1000', horaInicio: '10:00', horaFin: '11:00',
+                        dias: {
+                            lunes: [
+                                { actividad: 'BODY PUMP', sala: 'S7', monitores: [{ monitor: 'Diego', asiste: true }] },
+                                { actividad: 'PILATES', sala: 'S3', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            martes: [
+                                { actividad: 'BODY COMBAT', sala: 'S3', monitores: [{ monitor: 'Diego', asiste: true }] },
+                                { actividad: 'STEP', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            miercoles: [
+                                { actividad: 'BODY PUMP', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] },
+                                { actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Álvaro', asiste: true }] },
+                                { actividad: "45' ESTIRAMIENTOS", sala: 'S3', monitores: [{ monitor: 'Fran', asiste: true }] }
+                            ],
+                            jueves: [
+                                { actividad: 'STEP', sala: 'S7', monitores: [{ monitor: 'Alberto', asiste: true }] },
+                                { actividad: 'CROSS TRAINING', sala: 'S2', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            viernes: [
+                                { actividad: 'BODY PUMP', sala: 'S7', monitores: [{ monitor: 'Diego', asiste: true }] },
+                                { actividad: 'ZUMBA', sala: 'S3', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_1100', horaInicio: '11:00', horaFin: '12:00',
+                        dias: {
+                            lunes: [
+                                { actividad: 'MAYORES EN FORMA', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] },
+                                { actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Diego', asiste: true }] }
+                            ],
+                            martes: [
+                                { actividad: "30' CORE", sala: 'S3', monitores: [{ monitor: 'Diego', asiste: true }] },
+                                { actividad: 'PILATES', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            miercoles: [
+                                { actividad: 'MAYORES EN FORMA', sala: 'S7', monitores: [{ monitor: 'Fran', asiste: true }] },
+                                { actividad: 'ZUMBA', sala: 'S3', monitores: [{ monitor: 'Alberto', asiste: true }] }
+                            ],
+                            jueves: [
+                                { actividad: 'PILATES', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] },
+                                { actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Jacobo', asiste: true }] }
+                            ],
+                            viernes: [
+                                { actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Álvaro', asiste: true }] },
+                                { actividad: "30' CROSS TRAINING", sala: 'S2', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_1430', horaInicio: '14:30', horaFin: '15:30',
+                        dias: {
+                            lunes: [{ actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Álvaro', asiste: true }] }],
+                            martes: [],
+                            miercoles: [{ actividad: 'CROSS TRAINING', sala: 'S2', monitores: [{ monitor: 'Fran', asiste: true }] }],
+                            jueves: [],
+                            viernes: [{ actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Jacobo', asiste: true }] }],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_1830', horaInicio: '18:30', horaFin: '19:00',
+                        dias: {
+                            lunes: [{ actividad: 'BALANCE', sala: 'S7', monitores: [{ monitor: 'Alberto', asiste: true }] }],
+                            martes: [{ actividad: 'PILATES', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            miercoles: [{ actividad: "45' ESTIRAMIENTOS", sala: 'S7', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            jueves: [{ actividad: 'PILATES', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            viernes: [],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_1900', horaInicio: '19:00', horaFin: '19:30',
+                        dias: {
+                            lunes: [{ actividad: 'CROSS TRAINING', sala: 'S2', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            martes: [{ actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Álvaro', asiste: true }] }],
+                            miercoles: [{ actividad: 'CROSS TRAINING', sala: 'S2', monitores: [{ monitor: 'Jacobo', asiste: true }] }],
+                            jueves: [],
+                            viernes: [{ actividad: "30'GAP", sala: 'S7', monitores: [{ monitor: 'Fran', asiste: true }] }],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_1930', horaInicio: '19:30', horaFin: '20:00',
+                        dias: {
+                            lunes: [{ actividad: 'ZUMBA', sala: 'S7', monitores: [{ monitor: 'Alberto', asiste: true }] }],
+                            martes: [{ actividad: "30' CORE", sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] }],
+                            miercoles: [{ actividad: "30'GAP", sala: 'S7', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            jueves: [
+                                { actividad: "30' CROSS TRAINING", sala: 'S2', monitores: [{ monitor: 'Alberto', asiste: true }] },
+                                { actividad: "30'GAP", sala: 'S3', monitores: [{ monitor: 'Julia', asiste: true }] }
+                            ],
+                            viernes: [{ actividad: "30'CORE", sala: 'S7', monitores: [{ monitor: 'Fran', asiste: true }] }],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_2000', horaInicio: '20:00', horaFin: '20:30',
+                        dias: {
+                            lunes: [{ actividad: "30' CORE", sala: 'S3', monitores: [{ monitor: 'Diego', asiste: true }] }],
+                            martes: [
+                                { actividad: 'STEP', sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] },
+                                { actividad: 'CROSS TRAINING', sala: 'S2', monitores: [{ monitor: 'Álvaro', asiste: true }] }
+                            ],
+                            miercoles: [
+                                { actividad: 'BODY PUMP', sala: 'S7', monitores: [{ monitor: 'Diego', asiste: true }] },
+                                { actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Jacobo', asiste: true }] }
+                            ],
+                            jueves: [
+                                { actividad: "30' CORE", sala: 'S7', monitores: [{ monitor: 'Julia', asiste: true }] },
+                                { actividad: 'ZUMBA', sala: 'S3', monitores: [{ monitor: 'Alberto', asiste: true }] }
+                            ],
+                            viernes: [{ actividad: 'CROSS TRAINING', sala: 'S2', monitores: [{ monitor: 'Fran', asiste: true }] }],
+                            sabado: []
+                        }
+                    },
+                    {
+                        id: 'f_2030', horaInicio: '20:30', horaFin: '21:15',
+                        dias: {
+                            lunes: [
+                                { actividad: 'BODY PUMP', sala: 'S7', monitores: [{ monitor: 'Alberto', asiste: true }] },
+                                { actividad: "30' ESTIRAMIENTOS", sala: 'S3', monitores: [{ monitor: 'Diego', asiste: true }] }
+                            ],
+                            martes: [],
+                            miercoles: [],
+                            jueves: [
+                                { actividad: 'BODY COMBAT', sala: 'S7', monitores: [{ monitor: 'Diego', asiste: true }] },
+                                { actividad: 'CICLO INDOOR', sala: 'SC', monitores: [{ monitor: 'Álvaro', asiste: true }] }
+                            ],
+                            viernes: [],
+                            sabado: []
+                        }
+                    }
+                ]
+            };
+
+            appData.semanas = [nueva];
+            appData.semanaActivaId = nueva.id;
+        }
+
+        function crearSemanaEnBlanco() {
+            let nombre = prompt('Introduce el nombre o fechas de la nueva semana:', 'Semana ' + (appData.semanas.length + 1));
+            if (nombre === null) return;
+            if (!nombre.trim()) nombre = 'Semana ' + (appData.semanas.length + 1);
+
+            const nueva = {
+                id: 'sem_' + Date.now(),
+                rango: nombre.trim(),
+                filas: [
+                    {
+                        id: 'fila_' + Date.now() + '_1',
+                        horaInicio: '09:00', horaFin: '10:00',
+                        dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
+                    },
+                    {
+                        id: 'fila_' + Date.now() + '_2',
+                        horaInicio: '10:00', horaFin: '11:00',
+                        dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
+                    }
+                ]
+            };
+            appData.semanas.push(nueva);
+            appData.semanaActivaId = nueva.id;
+            guardar();
+            render();
+        }
+
+        function abrirModalBackup() {
+            document.getElementById('check-autobackup').checked = !!(appData.config && appData.config.autoBackup);
+            document.getElementById('modal-backup').classList.remove('hidden');
+        }
+
+        function cerrarModalBackup() {
+            document.getElementById('modal-backup').classList.add('hidden');
+        }
+
+        function toggleAutoBackup(activo) {
+            if (!appData.config) appData.config = {};
+            appData.config.autoBackup = activo;
+            guardar();
+        }
+
+        function descargarArchivoJson(objetoDatos) {
+            const nombreArchivo = 'backup_piscina.json';
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(objetoDatos, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", nombreArchivo);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function exportarBackupManual() {
+            descargarArchivoJson(appData);
+        }
+
+        function verificarAutoBackupAlEntrar() {
+            if (appData.config && appData.config.autoBackup) {
+                const hoy = new Date().toISOString().slice(0, 10);
+                const ultimoDescargado = localStorage.getItem('ULTIMO_BACKUP_FECHA');
+                if (ultimoDescargado !== hoy) {
+                    descargarArchivoJson(appData);
+                    localStorage.setItem('ULTIMO_BACKUP_FECHA', hoy);
+                }
+            }
+        }
+
+        function importarBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (!parsed.semanas && !parsed.monitores) {
+                        alert('El archivo no parece ser una copia de seguridad válida.');
+                        return;
+                    }
+
+                    if (confirm('Se van a restaurar los datos de este archivo y sustituirán a los actuales. ¿Deseas continuar?')) {
+                        appData = sanitizarEstructura(parsed);
+                        guardar();
+                        render();
+                        cerrarModalBackup();
+                        alert('¡Copia de seguridad restaurada correctamente!');
+                    }
+                } catch (err) {
+                    alert('Error al leer el archivo JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function render() {
+            const contenedor = document.getElementById('contenedor-principal');
+            if (!contenedor) return;
+
+            try {
+                const semana = obtenerSemanaActiva();
+
+                if (!semana) {
+                    cargarPlantillaOficialDesdeImagen();
+                    render();
+                    return;
+                }
+
+                const selSem = document.getElementById('select-semanas');
+                if (selSem) {
+                    selSem.innerHTML = appData.semanas.map(s => `
+                        <option value="${s.id}" ${s.id === semana.id ? 'selected' : ''}>${s.rango}</option>
+                    `).join('');
+                }
+
+                const inpRango = document.getElementById('semana-rango');
+                if (inpRango) inpRango.value = semana.rango || '';
+
+                let htmlTabla = `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-300 overflow-x-auto">
+                        <table class="w-full border-collapse print-table text-left min-w-[1180px] table-fixed">
+                            <thead>
+                                <tr class="bg-slate-900 text-white text-[10.5px] uppercase">
+                                    <th class="p-1 border border-slate-700 w-16 no-print text-center text-[9px] font-bold text-slate-300 bg-slate-950">
+                                        Fila
+                                    </th>
+                                    <th class="p-1 border border-slate-700 w-36 text-center align-middle bg-slate-950">
+                                        <div class="flex flex-col items-center gap-0.5">
+                                            <span class="font-bold tracking-wider text-[9.5px]">Horario</span>
+                                            <button onclick="agregarFila()" class="no-print bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-0.5 px-1.5 rounded shadow-2xs text-[9.5px] flex items-center justify-center gap-1 transition w-full">
+                                                <i class="fa-solid fa-clock-medical"></i> + Tramos
+                                            </button>
+                                        </div>
+                                    </th>
+                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Lunes</th>
+                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Martes</th>
+                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Miércoles</th>
+                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Jueves</th>
+                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Viernes</th>
+                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Sábado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-cuerpo" class="divide-y divide-slate-300 text-xs">
+                `;
+
+                if (!semana.filas || semana.filas.length === 0) {
+                    htmlTabla += `
+                        <tr>
+                            <td colspan="8" class="text-center p-6 text-slate-400 text-xs">
+                                No hay tramos de horas definidos. Haz clic en <strong>"+ Tramos"</strong> para empezar.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    semana.filas.forEach((fila, fIndex) => {
+                        const horasSlot = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
+                        const esImpar = fIndex % 2 !== 0;
+                        const claseFila = esImpar ? 'fila-impar' : 'fila-par';
+
+                        let tdAccion = `
+                            <td class="p-0.5 border border-slate-300 text-center align-middle no-print" ${fIndex === 0 ? 'id="tour-control-fila"' : ''}>
+                                <div class="flex items-center justify-center gap-1">
+                                    <button onclick="intercalarFilaDebajo(${fIndex})" title="Intercalar nueva franja horaria debajo" class="text-emerald-600 hover:text-emerald-800 p-0.5 text-xs transition">
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </button>
+                                    <button onclick="moverFila(${fIndex}, -1)" title="Subir franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition ${fIndex === 0 ? 'opacity-20 cursor-not-allowed' : ''}">
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    </button>
+                                    <button onclick="moverFila(${fIndex}, 1)" title="Bajar franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition ${fIndex === semana.filas.length - 1 ? 'opacity-20 cursor-not-allowed' : ''}">
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    </button>
+                                    <button onclick="eliminarFila(${fIndex})" title="Eliminar franja" class="text-slate-300 hover:text-red-600 p-0.5 text-[11px] transition">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+
+                        // COLUMNA DE HORARIOS: CON CLASES PARA RESALTAR TRAMO EN IMPRESIÓN
+                        let tdHorario = `
+                            <td class="celda-horario p-1 border border-slate-300 text-center align-top font-sans" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
+                                <div class="flex flex-col items-center space-y-0.5">
+                                    <input type="time" value="${fila.horaInicio || '09:00'}" onchange="actualizarHorario(${fIndex}, 'horaInicio', this.value)" 
+                                        class="border border-slate-300 rounded px-1 py-0.5 font-mono text-[11px] bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
+                                    <div class="hora-conector text-[8.5px] text-slate-500 font-bold uppercase">a</div>
+                                    <input type="time" value="${fila.horaFin || '10:00'}" onchange="actualizarHorario(${fIndex}, 'horaFin', this.value)" 
+                                        class="border border-slate-300 rounded px-1 py-0.5 font-mono text-[11px] bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
+                                    <div class="duracion-badge mt-0.5 text-[9.5px] font-black text-cyan-950 bg-cyan-200/90 rounded py-0.5 w-23 text-center">
+                                        ${horasSlot.toFixed(2)} h
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+
+                        let tdDias = DIAS.map((dia, dIdx) => {
+                            if (!fila.dias) fila.dias = {};
+                            if (!Array.isArray(fila.dias[dia])) fila.dias[dia] = [];
+                            const actividades = fila.dias[dia];
+
+                            const actsHtml = actividades.map((act, actIndex) => {
+                                const tieneMonitores = act.monitores && act.monitores.length > 0;
+                                const esUltimaActividad = actIndex === actividades.length - 1;
+
+                                const colorLetra = obtenerColorTextoActividad(act.actividad);
+
+                                const monitoresItemsHtml = (act.monitores || []).map((m, mIndex) => {
+                                    const colorMonitor = obtenerColorTextoMonitor(m.monitor);
+
+                                    return `
+                                        <div class="mon-badge inline-flex items-center gap-1 px-1 py-0.5 rounded ${m.asiste ? 'bg-cyan-50/70 border border-cyan-300/80' : 'bg-red-50 border border-red-200 opacity-60'}">
+                                            <label class="flex items-center gap-1 cursor-pointer truncate mr-0.5" title="${m.monitor} (Click para activar o desactivar sus horas)">
+                                                <input type="checkbox" ${m.asiste ? 'checked' : ''} onchange="toggleAsistencia(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" class="w-3 h-3 accent-cyan-700">
+                                                <span class="font-extrabold truncate ${m.asiste ? '' : 'line-through opacity-50'} text-[10px] max-w-[95px]"
+                                                      style="color: ${m.asiste ? colorMonitor : '#ef4444'};">
+                                                    ${m.monitor}
+                                                </span>
+                                            </label>
+                                            <button onclick="quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px]">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                                }).join('');
+
+                                let bloqueMonitores = '';
+                                if (tieneMonitores) {
+                                    bloqueMonitores = `
+                                        <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                                            ${monitoresItemsHtml}
+                                            <button onclick="abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" title="Añadir otro monitor" 
+                                                class="border border-dashed border-cyan-400 text-cyan-700 hover:bg-cyan-100 rounded px-1.5 py-0.5 text-[8.5px] font-bold no-print flex items-center gap-0.5 transition shrink-0">
+                                                <i class="fa-solid fa-user-plus text-[8px]"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                                } else {
+                                    bloqueMonitores = `
+                                        <button onclick="abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" class="w-full mt-0.5 border border-dashed border-slate-300 text-slate-400 hover:text-cyan-800 hover:border-cyan-500 rounded py-0.5 text-[8.5px] flex items-center justify-center gap-0.5 no-print">
+                                            <i class="fa-solid fa-plus"></i> Monitor
+                                        </button>
+                                    `;
+                                }
+
+                                const esPrimeraCelda = (fIndex === 0 && dIdx === 0 && actIndex === 0);
+
+                                // CASILLA CON FONDO TRANSPARENTE: ADOPTA EL MISMO COLOR DE LA FILA (BLANCO O GRIS)
+                                return `
+                                    <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
+                                        <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
+                                            <input type="text" value="${act.actividad || ''}" placeholder="Actividad..." 
+                                                onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'actividad', this.value)" 
+                                                style="color: ${colorLetra};"
+                                                class="flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${act.actividad || ''}">
+                                            
+                                            <input type="text" value="${act.sala || ''}" placeholder="Sal" maxlength="3"
+                                                onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'sala', this.value)" 
+                                                class="w-7 text-[9px] text-slate-700 uppercase font-bold text-center placeholder-slate-300 outline-none border border-slate-400/60 rounded px-0.5 shrink-0 bg-white/40" title="Sala / Vaso (ej: S7, S3, S2, SC)">
+                                            
+                                            <button onclick="eliminarActividad(${fIndex}, '${dia}', ${actIndex})" title="Eliminar actividad" class="text-slate-300 hover:text-red-600 no-print text-[9px] ml-0.5 shrink-0">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+
+                                            ${esUltimaActividad ? `
+                                                <button onclick="agregarActividad(${fIndex}, '${dia}')" title="Añadir otra actividad simultánea" 
+                                                    class="text-emerald-600 hover:text-emerald-800 no-print text-[11px] ml-0.5 shrink-0 transition" style="line-height: 1;">
+                                                    <i class="fa-solid fa-circle-plus"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                        
+                                        ${bloqueMonitores}
+                                    </div>
+                                `;
+                            }).join('');
+
+                            return `
+                                <td class="p-1 border border-slate-300 align-top">
+                                    <div>${actsHtml}</div>
+                                    ${actividades.length === 0 ? `
+                                        <button onclick="agregarActividad(${fIndex}, '${dia}')" class="w-full border border-dashed border-cyan-400 bg-white hover:bg-cyan-50 text-cyan-800 rounded py-0.5 text-[9px] font-semibold flex items-center justify-center gap-0.5 transition no-print shadow-2xs">
+                                            <i class="fa-solid fa-plus"></i> Actividad
+                                        </button>
+                                    ` : ''}
+                                </td>
+                            `;
+                        }).join('');
+
+                        htmlTabla += `<tr class="border-b border-slate-300 ${claseFila}">${tdAccion}${tdHorario}${tdDias}</tr>`;
+                    });
+                }
+
+                htmlTabla += `
+                            </tbody>
+                            <tfoot>
+                                <tr id="tour-totales-pie" class="bg-slate-300 font-bold border-t-2 border-slate-400">
+                                    <td class="no-print p-0 border border-slate-300 bg-slate-300"></td>
+                                    <td class="p-1.5 border border-slate-300 text-slate-900 font-black text-center uppercase tracking-wider text-[9.5px]">
+                                        Total Horas
+                                    </td>
+                                    <td colspan="6" class="p-1.5 border border-slate-300">
+                                        <div id="resumen-monitores" class="flex flex-wrap gap-1.5 text-xs"></div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+
+                contenedor.innerHTML = htmlTabla;
+                calcularTotales();
+
+            } catch (error) {
+                console.error("Error al renderizar:", error);
+            }
+        }
+
+        // CÁLCULO DE TOTALES
+        function calcularTotales() {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+
+            const resumenMinutos = {};
+            appData.monitores.forEach(m => resumenMinutos[m] = 0);
+
+            (semana.filas || []).forEach(fila => {
+                const horas = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
+                DIAS.forEach(dia => {
+                    const actividades = (fila.dias && fila.dias[dia]) ? fila.dias[dia] : [];
+                    actividades.forEach(act => {
+                        (act.monitores || []).forEach(asig => {
+                            if (asig && asig.asiste) {
+                                resumenMinutos[asig.monitor] = (resumenMinutos[asig.monitor] || 0) + (horas * 60);
+                            }
+                        });
+                    });
+                });
+            });
+
+            const contenedor = document.getElementById('resumen-monitores');
+            if (!contenedor) return;
+
+            contenedor.innerHTML = Object.entries(resumenMinutos).map(([monitor, minutos]) => {
+                const horasDecimal = (minutos / 60).toFixed(2);
+                const hEnteras = Math.floor(minutos / 60);
+                const mRestantes = Math.round(minutos % 60);
+                const colorMonitor = obtenerColorTextoMonitor(monitor);
+
+                return `
+                    <div class="bg-white px-1.5 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1">
+                        <span class="font-black text-[10.5px]" style="color: ${colorMonitor};">${monitor}:</span>
+                        <span class="total-horas-num text-slate-950 font-black text-[11px]">${horasDecimal}h</span>
+                        <span class="text-[9px] text-slate-500">(${hEnteras}h ${mRestantes}m)</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ACCIONES DE FILAS
+        function agregarFila() {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+            if (!semana.filas) semana.filas = [];
+            
+            const ultimaFila = semana.filas[semana.filas.length - 1];
+            let inicio = '11:00';
+            let fin = '12:00';
+
+            if (ultimaFila && ultimaFila.horaFin) {
+                inicio = ultimaFila.horaFin;
+                const [h, m] = inicio.split(':').map(Number);
+                fin = `${String(Math.min(23, h + 1)).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+
+            semana.filas.push({
+                id: 'fila_' + Date.now(),
+                horaInicio: inicio,
+                horaFin: fin,
+                dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
+            });
+            guardar();
+            render();
+        }
+
+        function intercalarFilaDebajo(fIndex) {
+            const semana = obtenerSemanaActiva();
+            if (!semana || !semana.filas) return;
+
+            const filaActual = semana.filas[fIndex];
+            const inicio = filaActual.horaFin || '10:00';
+            const [h, m] = inicio.split(':').map(Number);
+            const fin = `${String(Math.min(23, h + 1)).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+            const nuevaFila = {
+                id: 'fila_' + Date.now(),
+                horaInicio: inicio,
+                horaFin: fin,
+                dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
+            };
+
+            semana.filas.splice(fIndex + 1, 0, nuevaFila);
+            guardar();
+            render();
+        }
+
+        function moverFila(fIndex, direccion) {
+            const semana = obtenerSemanaActiva();
+            if (!semana || !semana.filas) return;
+
+            const nuevoIndex = fIndex + direccion;
+            if (nuevoIndex < 0 || nuevoIndex >= semana.filas.length) return;
+
+            const temp = semana.filas[fIndex];
+            semana.filas[fIndex] = semana.filas[nuevoIndex];
+            semana.filas[nuevoIndex] = temp;
+
+            guardar();
+            render();
+        }
+
+        function eliminarFila(fIndex) {
+            if (confirm('¿Eliminar esta franja horaria completa?')) {
+                const semana = obtenerSemanaActiva();
+                semana.filas.splice(fIndex, 1);
+                guardar();
+                render();
+            }
+        }
+
+        function actualizarHorario(fIndex, campo, valor) {
+            const semana = obtenerSemanaActiva();
+            if (semana && semana.filas[fIndex]) {
+                semana.filas[fIndex][campo] = valor;
+                guardar();
+                render();
+            }
+        }
+
+        function agregarActividad(fIndex, dia) {
+            const semana = obtenerSemanaActiva();
+            if (!semana.filas[fIndex].dias) semana.filas[fIndex].dias = {};
+            if (!Array.isArray(semana.filas[fIndex].dias[dia])) {
+                semana.filas[fIndex].dias[dia] = [];
+            }
+            semana.filas[fIndex].dias[dia].push({
+                actividad: '',
+                sala: '',
+                monitores: []
+            });
+            guardar();
+            render();
+        }
+
+        function eliminarActividad(fIndex, dia, actIndex) {
+            const semana = obtenerSemanaActiva();
+            semana.filas[fIndex].dias[dia].splice(actIndex, 1);
+            guardar();
+            render();
+        }
+
+        function actualizarActividadInfo(fIndex, dia, actIndex, campo, valor) {
+            const semana = obtenerSemanaActiva();
+            if (semana && semana.filas[fIndex].dias[dia][actIndex]) {
+                semana.filas[fIndex].dias[dia][actIndex][campo] = valor;
+                guardar();
+                if (campo === 'actividad') {
+                    render();
+                }
+            }
+        }
+
+        function quitarMonitor(fIndex, dia, actIndex, mIndex) {
+            const semana = obtenerSemanaActiva();
+            semana.filas[fIndex].dias[dia][actIndex].monitores.splice(mIndex, 1);
+            guardar();
+            render();
+        }
+
+        function toggleAsistencia(fIndex, dia, actIndex, mIndex) {
+            const semana = obtenerSemanaActiva();
+            const mon = semana.filas[fIndex].dias[dia][actIndex].monitores[mIndex];
+            mon.asiste = !mon.asiste;
+            guardar();
+            render();
+        }
+
+        function abrirModalAsignar(fIndex, dia, actIndex) {
+            contextoAsignacion = { fIndex, dia, actIndex };
+            const semana = obtenerSemanaActiva();
+            const fila = semana.filas[fIndex];
+            const act = fila.dias[dia][actIndex];
+
+            const diaCap = dia.charAt(0).toUpperCase() + dia.slice(1);
+            document.getElementById('subtitulo-asignar').textContent = 
+                `${diaCap} (${fila.horaInicio} - ${fila.horaFin}) : ${act.actividad || 'Clase'} ${act.sala ? '['+act.sala+']' : ''}`;
+
+            const input = document.getElementById('input-asignar-monitores');
+            input.value = '';
+
+            const badgesCont = document.getElementById('badges-monitores-disponibles');
+            badgesCont.innerHTML = appData.monitores.map((m, idx) => {
+                const colorM = obtenerColorTextoMonitor(m);
+                return `
+                    <button type="button" onclick="agregarAlInputAsignar('${m}')" 
+                        class="bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-400 text-slate-700 rounded px-1.5 py-0.5 text-xs transition flex items-center gap-1 shadow-2xs">
+                        <span class="font-bold text-cyan-800">${idx + 1}.</span> 
+                        <span class="font-extrabold" style="color: ${colorM};">${m}</span>
+                    </button>
+                `;
+            }).join('');
+
+            document.getElementById('modal-asignar-monitores').classList.remove('hidden');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function cerrarModalAsignar() {
+            document.getElementById('modal-asignar-monitores').classList.add('hidden');
+            contextoAsignacion = null;
+        }
+
+        function agregarAlInputAsignar(nombre) {
+            const input = document.getElementById('input-asignar-monitores');
+            const actual = input.value.trim();
+            if (!actual) {
+                input.value = nombre;
+            } else {
+                const elementos = actual.split(',').map(s => s.trim());
+                if (!elementos.includes(nombre)) {
+                    input.value = actual + ', ' + nombre;
+                }
+            }
+            input.focus();
+        }
+
+        function procesarAsignacionMonitores() {
+            if (!contextoAsignacion) return;
+            const input = document.getElementById('input-asignar-monitores');
+            const texto = input.value.trim();
+            if (!texto) {
+                cerrarModalAsignar();
+                return;
+            }
+
+            const { fIndex, dia, actIndex } = contextoAsignacion;
+            const semana = obtenerSemanaActiva();
+            const actividad = semana.filas[fIndex].dias[dia][actIndex];
+            const partes = texto.split(',').map(s => s.trim()).filter(Boolean);
+
+            partes.forEach(parte => {
+                let monitorFinal = null;
+
+                if (!isNaN(parte)) {
+                    const idx = parseInt(parte) - 1;
+                    if (appData.monitores[idx]) {
+                        monitorFinal = appData.monitores[idx];
+                    }
+                }
+
+                if (!monitorFinal) {
+                    const query = parte.toLowerCase();
+                    let match = appData.monitores.find(m => m.toLowerCase() === query);
+                    if (!match) {
+                        match = appData.monitores.find(m => m.toLowerCase().includes(query));
+                    }
+                    if (match) {
+                        monitorFinal = match;
+                    }
+                }
+
+                if (!monitorFinal) {
+                    monitorFinal = parte.charAt(0).toUpperCase() + parte.slice(1);
+                    if (!appData.monitores.includes(monitorFinal)) {
+                        appData.monitores.push(monitorFinal);
+                    }
+                }
+
+                if (!actividad.monitores) actividad.monitores = [];
+                const yaAsignado = actividad.monitores.some(m => m.monitor.toLowerCase() === monitorFinal.toLowerCase());
+                if (!yaAsignado) {
+                    actividad.monitores.push({
+                        monitor: monitorFinal,
+                        asiste: true
+                    });
+                }
+            });
+
+            guardar();
+            cerrarModalAsignar();
+            render();
+        }
+
+        function abrirModalGestionMonitores() {
+            renderListaMonitoresModal();
+            document.getElementById('modal-gestion-monitores').classList.remove('hidden');
+        }
+
+        function cerrarModalGestionMonitores() {
+            document.getElementById('modal-gestion-monitores').classList.add('hidden');
+        }
+
+        function renderListaMonitoresModal() {
+            const cont = document.getElementById('lista-monitores-modal');
+            if (appData.monitores.length === 0) {
+                cont.innerHTML = '<p class="text-slate-400 text-xs text-center p-2">No hay monitores registrados.</p>';
+                return;
+            }
+            cont.innerHTML = appData.monitores.map((m, idx) => {
+                const colorM = obtenerColorTextoMonitor(m);
+                return `
+                    <div class="flex justify-between items-center py-1 px-1">
+                        <span class="text-xs font-black" style="color: ${colorM};">${idx + 1}. ${m}</span>
+                        <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1" title="Eliminar">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function agregarMonitorGlobal(e) {
+            e.preventDefault();
+            const input = document.getElementById('nuevo-monitor-nombre');
+            const nombre = input.value.trim();
+            if (nombre && !appData.monitores.includes(nombre)) {
+                appData.monitores.push(nombre);
+                guardar();
+                renderListaMonitoresModal();
+                render();
+            }
+            input.value = '';
+        }
+
+        function eliminarMonitorGlobal(index) {
+            const nombre = appData.monitores[index];
+            if (confirm(`¿Eliminar al monitor "${nombre}" de la lista general?`)) {
+                appData.monitores.splice(index, 1);
+                guardar();
+                renderListaMonitoresModal();
+                render();
+            }
+        }
+
+        function clonarSemanaActual() {
+            const actual = obtenerSemanaActiva();
+            if (!actual) return;
+
+            let nuevoRango = prompt('Escribe el nombre o rango de la nueva semana:', 'Semana del ...');
+            if (nuevoRango === null) return;
+            if (!nuevoRango.trim()) nuevoRango = 'Semana ' + (appData.semanas.length + 1);
+
+            const clon = JSON.parse(JSON.stringify(actual));
+            clon.id = 'sem_' + Date.now();
+            clon.rango = nuevoRango.trim();
+
+            (clon.filas || []).forEach(f => {
+                DIAS.forEach(d => {
+                    if (Array.isArray(f.dias[d])) {
+                        f.dias[d].forEach(act => {
+                            if (act.monitores) {
+                                act.monitores.forEach(m => m.asiste = true);
+                            }
+                        });
+                    }
+                });
+            });
+
+            appData.semanas.push(clon);
+            appData.semanaActivaId = clon.id;
+            guardar();
+            render();
+        }
+
+        function borrarSemanaActual() {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+
+            if (appData.semanas.length <= 1) {
+                if (confirm(`Es el único calendario existente. ¿Deseas vaciarlo por completo?`)) {
+                    semana.filas = [];
+                    guardar();
+                    render();
+                }
+                return;
+            }
+
+            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente el calendario:\n\n"${semana.rango}"?`)) {
+                const idx = appData.semanas.findIndex(s => s.id === semana.id);
+                appData.semanas.splice(idx, 1);
+                appData.semanaActivaId = appData.semanas.length > 0 ? appData.semanas[Math.max(0, idx - 1)].id : null;
+                guardar();
+                render();
+            }
+        }
+
+        function seleccionarSemana(id) {
+            appData.semanaActivaId = id;
+            guardar();
+            render();
+        }
+
+        function cambiarSemana(delta) {
+            if (appData.semanas.length === 0) return;
+            const idx = appData.semanas.findIndex(s => s.id === appData.semanaActivaId);
+            const nuevoIdx = idx + delta;
+            if (nuevoIdx >= 0 && nuevoIdx < appData.semanas.length) {
+                seleccionarSemana(appData.semanas[nuevoIdx].id);
+            }
+        }
+
+        function actualizarRangoTexto(val) {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+            semana.rango = val;
+            guardar();
+            const opt = document.querySelector(`#select-semanas option[value="${semana.id}"]`);
+            if (opt) opt.textContent = val;
+        }
+
+        function configurarEventos() {
+            const inputAsig = document.getElementById('input-asignar-monitores');
+            if (inputAsig) {
+                inputAsig.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        procesarAsignacionMonitores();
+                    }
+                });
+            }
+        }
+
+        // ==========================================================
+        // --- TOUR DINÁMICO DE AYUDA PASO A PASO ---
+        // ==========================================================
+        let pasoTourActual = 0;
+
+        const pasosTour = [
+            {
+                targetId: 'tour-semanas',
+                icono: 'fa-calendar-days',
+                titulo: 'Gestión y Cambio de Semanas',
+                descripcion: 'Permite alternar entre diferentes calendarios o semanas mediante el menú desplegable y las flechas. El botón rojo elimina la semana en pantalla.',
+                tip: 'El nombre o rango de fechas de la cabecera se puede modificar en cualquier momento escribiendo en él.'
+            },
+            {
+                targetId: 'tour-clonar',
+                icono: 'fa-clone',
+                titulo: 'Clonar Semana Completa',
+                descripcion: 'Crea una nueva semana copiando íntegramente todos los horarios, actividades y monitores asignados en la semana actual.',
+                tip: 'Al clonar, todas las casillas de asistencia se activan de nuevo por defecto para la nueva semana.'
+            },
+            {
+                targetId: 'tour-monitores',
+                icono: 'fa-users-gear',
+                titulo: 'Base de Datos de Monitores',
+                descripcion: 'Abre el listado general de monitores para dar de alta nuevos profesores o darlos de baja con el botón de papelera.',
+                tip: 'También puedes dar de alta un monitor directamente al escribir su nombre en cualquier clase.'
+            },
+            {
+                targetId: 'tour-backup',
+                icono: 'fa-shield-halved',
+                titulo: 'Copias de Seguridad',
+                descripcion: 'Descarga el archivo <strong>backup_piscina.json</strong> para salvaguardar todos los calendarios o trasladarlos a otro ordenador. Al guardarlo en el mismo sitio siempre se sobreescribe el anterior.',
+                tip: 'Puedes activar la casilla de copia automática diaria para que se descargue un respaldo cada día al abrir la web.'
+            },
+            {
+                targetId: 'tour-imprimir',
+                icono: 'fa-print',
+                titulo: 'Imprimir o Guardar en PDF',
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. El período del calendario, los tramos de horas y el pie de totales se imprimen en tamaño más grande y en negrita para una lectura óptima.',
+                tip: 'Elige la opción "Guardar como PDF" en tu navegador si deseas enviarlo por WhatsApp o correo electrónico.'
+            },
+            {
+                targetId: 'tour-control-fila',
+                icono: 'fa-arrows-up-down',
+                titulo: 'Gestión de Filas y Reestructuración',
+                descripcion: 'El botón verde <strong>(+)</strong> intercala una nueva franja horaria inmediatamente debajo. Las flechas <strong>(▲ / ▼)</strong> permiten subir o bajar franjas enteras de sitio sin tener que retocar las demás.',
+                tip: 'La franja recién intercalada adopta como hora de inicio el fin de la anterior automáticamente.'
+            },
+            {
+                targetId: 'tour-horario-slot',
+                icono: 'fa-clock',
+                titulo: 'Horarios y Cómputo de Duración',
+                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo. En la impresión en papel se resalta automáticamente en tamaño mayor y negrita.',
+                tip: 'Las casillas de hora muestran claramente horas y minutos sin que el icono del reloj estorbe.'
+            },
+            {
+                targetId: 'tour-actividad-card',
+                icono: 'fa-user-check',
+                titulo: 'Asignación, Asistencia y Colores Únicos',
+                descripcion: '<strong>Colores únicos:</strong> Tanto las actividades como los <strong>monitores</strong> tienen colores de texto exclusivos para identificarlos al instante.<br><br><strong>¿Cómo asignar monitores?</strong> Pulsa <strong>+ Monitor</strong> (o <strong>+👤</strong>). Haz clic sobre los nombres o escribe varios separados por comas.<br><br><strong>¿Cómo controlar la asistencia?</strong> Si un monitor no asiste o no imparte la clase, <strong>desmarca su casilla</strong>: su nombre se tachará y sus horas se restarán automáticamente del total semanal.',
+                tip: 'Para añadir otra actividad simultánea en la misma franja horaria (ej: dos salas a la vez), pulsa el botón verde (+) de la cabecera.'
+            },
+            {
+                targetId: 'tour-totales-pie',
+                icono: 'fa-calculator',
+                titulo: 'Cálculo de Horas Semanales por Monitor',
+                descripcion: 'Suma en tiempo real el total de horas exactas impartidas por cada monitor en la semana activa. Cada monitor aparece con su color correspondiente para asociarlo de inmediato a sus clases.',
+                tip: 'En la versión impresa este pie se amplía de tamaño para facilitar el control de nóminas y partes de horas.'
+            }
+        ];
+
+        function iniciarTourAyuda() {
+            pasoTourActual = 0;
+            document.getElementById('tour-overlay').classList.remove('hidden');
+            document.getElementById('tour-card').classList.remove('hidden');
+            actualizarPasoTour();
+        }
+
+        function cerrarTour() {
+            const previo = document.querySelector('.tour-highlight');
+            if (previo) previo.classList.remove('tour-highlight');
+
+            document.getElementById('tour-overlay').classList.add('hidden');
+            document.getElementById('tour-card').classList.add('hidden');
+        }
+
+        function cambiarPasoTour(delta) {
+            pasoTourActual += delta;
+            if (pasoTourActual < 0) pasoTourActual = 0;
+            if (pasoTourActual >= pasosTour.length) {
+                cerrarTour();
+                return;
+            }
+            actualizarPasoTour();
+        }
+
+        function actualizarPasoTour() {
+            const paso = pasosTour[pasoTourActual];
+            if (!paso) return;
+
+            const previo = document.querySelector('.tour-highlight');
+            if (previo) previo.classList.remove('tour-highlight');
+
+            let elem = document.getElementById(paso.targetId);
+            if (!elem) elem = document.querySelector('header');
+
+            if (elem) {
+                elem.classList.add('tour-highlight');
+                elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            document.getElementById('tour-paso-badge').textContent = `Paso ${pasoTourActual + 1} de ${pasosTour.length}`;
+            document.getElementById('tour-titulo').innerHTML = `<i class="fa-solid ${paso.icono} text-cyan-600"></i> ${paso.titulo}`;
+            document.getElementById('tour-descripcion').innerHTML = paso.descripcion;
+            document.getElementById('tour-tip').innerHTML = `<strong>Consejo:</strong> ${paso.tip}`;
+
+            const btnAnt = document.getElementById('tour-btn-ant');
+            btnAnt.style.visibility = pasoTourActual === 0 ? 'hidden' : 'visible';
+
+            const btnSig = document.getElementById('tour-btn-sig');
+            btnSig.textContent = pasoTourActual === pasosTour.length - 1 ? 'Finalizar' : 'Siguiente';
+
+            posicionarTarjetaTour(elem);
+        }
+
+        function posicionarTarjetaTour(targetElem) {
+            const card = document.getElementById('tour-card');
+            if (!targetElem) return;
+
+            const rect = targetElem.getBoundingClientRect();
+            const cardHeight = card.offsetHeight || 220;
+            const cardWidth = card.offsetWidth || 380;
+            const windowHeight = window.innerHeight;
+            const windowWidth = window.innerWidth;
+
+            let top, left;
+
+            if (rect.bottom + cardHeight + 20 < windowHeight) {
+                top = rect.bottom + 12;
+            } else if (rect.top - cardHeight - 20 > 0) {
+                top = rect.top - cardHeight - 12;
+            } else {
+                top = (windowHeight - cardHeight) / 2;
+            }
+
+            left = rect.left + (rect.width / 2) - (cardWidth / 2);
+            if (left < 15) left = 15;
+            if (left + cardWidth > windowWidth - 15) left = windowWidth - cardWidth - 15;
+
+            card.style.top = `${top}px`;
+            card.style.left = `${left}px`;
+        }
+
+        window.onload = inicializar;
+    </script>
+</body>
+</html>
