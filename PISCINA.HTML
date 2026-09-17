@@ -27,8 +27,9 @@
             transition: all 0.3s ease !important;
         }
 
-        /* RESALTE DE EMPLEADO SELECCIONADO (PANTALLA) */
-        .act-card.act-card-resaltado {
+        /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA (PANTALLA) */
+        .act-card.act-card-resaltado,
+        .act-card.act-card-resaltado-actividad {
             background-color: #fef08a !important; /* Amarillo marcador pastel */
             border: 2px solid #b45309 !important; /* Borde ámbar oscuro visible */
             box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.45) !important;
@@ -52,7 +53,7 @@
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-        .modo-resalte-activo .act-card:not(.act-card-resaltado) {
+        .modo-resalte-activo .act-card:not(.act-card-resaltado):not(.act-card-resaltado-actividad) {
             opacity: 0.42;
             filter: grayscale(35%);
         }
@@ -108,8 +109,9 @@
                 border: 1px solid #94a3b8 !important;
             }
 
-            /* RESALTE EN MODO IMPRESIÓN */
-            .act-card.act-card-resaltado {
+            /* SOMBREADO EN MODO IMPRESIÓN TANTO DE ACTIVIDAD COMO DE MONITOR */
+            .act-card.act-card-resaltado,
+            .act-card.act-card-resaltado-actividad {
                 border: 2px solid #92400e !important;
                 background-color: #fef08a !important;
                 -webkit-print-color-adjust: exact !important;
@@ -140,7 +142,7 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            .modo-resalte-activo .act-card:not(.act-card-resaltado) {
+            .modo-resalte-activo .act-card:not(.act-card-resaltado):not(.act-card-resaltado-actividad) {
                 opacity: 0.38 !important;
                 filter: grayscale(70%) !important;
             }
@@ -181,7 +183,7 @@
                 border: 1.5px solid #0e7490 !important;
             }
 
-            /* 2. CABECERA: TÍTULO, PERÍODO Y DATO DEL OPERARIO DESTACADOS EN GRANDE */
+            /* 2. CABECERA: TÍTULO, PERÍODO, OPERARIO Y ACTIVIDAD EN TAMAÑO DESTACADO */
             #cabecera-documento h1 {
                 font-size: 16px !important;
                 font-weight: 900 !important;
@@ -203,8 +205,9 @@
                 width: 420px !important;
             }
 
-            /* MEJORA 1: DATO DEL OPERARIO EN LA CABECERA CON FUENTE GRANDE Y VISIBLE */
-            #badge-filtro-monitor {
+            /* DATO DE LA ACTIVIDAD O DEL OPERARIO EN LA CABECERA (IMPRESIÓN) */
+            #badge-filtro-monitor,
+            #badge-filtro-actividad {
                 display: inline-flex !important;
                 border: 2.5px solid #92400e !important;
                 background-color: #fef08a !important;
@@ -215,24 +218,28 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            #badge-filtro-monitor i {
+            #badge-filtro-monitor i,
+            #badge-filtro-actividad i {
                 font-size: 16px !important;
                 color: #b45309 !important;
             }
-            #badge-filtro-monitor .texto-filtro-label {
+            #badge-filtro-monitor .texto-filtro-label,
+            #badge-filtro-actividad .texto-filtro-label {
                 font-size: 16px !important;
                 font-weight: 900 !important;
                 color: #78350f !important;
                 text-transform: uppercase !important;
             }
-            #badge-filtro-monitor strong {
+            #badge-filtro-monitor strong,
+            #badge-filtro-actividad strong {
                 font-size: 18px !important;
                 font-weight: 900 !important;
                 color: #000000 !important;
                 text-transform: uppercase !important;
                 letter-spacing: 0.5px !important;
             }
-            #badge-filtro-monitor .horas-filtro-total {
+            #badge-filtro-monitor .horas-filtro-total,
+            #badge-filtro-actividad .horas-filtro-total {
                 font-size: 16px !important;
                 font-weight: 900 !important;
                 color: #92400e !important;
@@ -316,18 +323,31 @@
                 <h1 class="text-sm md:text-base font-black text-cyan-950 flex items-center gap-1.5">
                     <i class="fa-solid fa-person-swimming text-cyan-600"></i> ACTIVIDADES DIRIGIDAS - CONTROL DE HORAS
                 </h1>
-                <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste para no contabilizar sus horas. Haz clic en un monitor en el pie para resaltar sus clases.</p>
+                <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste. Haz clic en un monitor o en una actividad para sombrearla (se mantiene al imprimir).</p>
             </div>
 
-            <!-- CHIP DE RESALTE ACTIVO (EN PANTALLA Y EN IMPRESIÓN DESTACADO) -->
-            <div id="badge-filtro-monitor" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
-                <i class="fa-solid fa-highlighter text-amber-600 text-sm md:text-base"></i>
-                <span class="texto-filtro-label">Horas de:</span>
-                <strong id="nombre-monitor-filtrado" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
-                <span id="horas-monitor-filtrado" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
-                <button onclick="toggleResaltarMonitor(null)" title="Quitar resalte" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                </button>
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- CHIP DE RESALTE ACTIVO DE EMPLEADO -->
+                <div id="badge-filtro-monitor" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
+                    <i class="fa-solid fa-user-check text-amber-700 text-sm md:text-base"></i>
+                    <span class="texto-filtro-label">Horas de:</span>
+                    <strong id="nombre-monitor-filtrado" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
+                    <span id="horas-monitor-filtrado" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
+                    <button onclick="toggleResaltarMonitor(null)" title="Quitar resalte de empleado" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- CHIP DE RESALTE ACTIVO DE ACTIVIDAD (SE IMPRIME SI ESTÁ MARCADA) -->
+                <div id="badge-filtro-actividad" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
+                    <i class="fa-solid fa-bookmark text-amber-700 text-sm md:text-base"></i>
+                    <span class="texto-filtro-label">Actividad:</span>
+                    <strong id="nombre-actividad-filtrada" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
+                    <span id="conteo-actividad-filtrada" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
+                    <button onclick="desmarcarActividad()" title="Quitar resalte de actividad" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
             </div>
             
             <!-- PERÍODO DEL CALENDARIO -->
@@ -341,7 +361,7 @@
 
     </div>
 
-    <!-- MODAL DE AYUDA / TOUR (CON SCROLL Y LÍMITES SEGUROS PARA QUE SIEMPRE SE VEA) -->
+    <!-- MODAL DE AYUDA / TOUR (CON SCROLL Y LÍMITES SEGUROS) -->
     <div id="tour-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden no-print transition-all duration-300"></div>
     
     <div id="tour-card" class="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-cyan-500 p-5 w-full max-w-md hidden no-print space-y-3 transition-all duration-200 max-h-[88vh] overflow-y-auto">
@@ -567,7 +587,8 @@
         };
 
         let contextoAsignacion = null;
-        let monitorResaltado = null; // MONITOR ACTUALMENTE RESALTADO
+        let monitorResaltado = null;    // MONITOR ACTUALMENTE RESALTADO
+        let actividadResaltada = null;  // ACTIVIDAD ACTUALMENTE RESALTADA (PERMANECE AL IMPRIMIR)
 
         function calcularDuracionHoras(inicio, fin) {
             if (!inicio || !fin) return 0;
@@ -935,6 +956,74 @@
             render();
         }
 
+        // CONTROL DEL RESALTE Y SOMBREADO PERMANENTE DE ACTIVIDAD (PARA PANTALLA E IMPRESIÓN)
+        function manejarFocoActividad(inputElem) {
+            if (!inputElem) return;
+            const val = inputElem.value.trim().toUpperCase();
+            if (val) {
+                actividadResaltada = val;
+                aplicarResalteActividadEnDOM(val);
+            }
+        }
+
+        function manejarInputActividad(inputElem) {
+            if (!inputElem) return;
+            const val = inputElem.value.trim().toUpperCase();
+            actividadResaltada = val || null;
+            aplicarResalteActividadEnDOM(val);
+        }
+
+        function aplicarResalteActividadEnDOM(texto) {
+            const contenedorTabla = document.querySelector('.print-table')?.parentElement;
+
+            // Limpiar clases previas de actividad
+            document.querySelectorAll('.act-card-resaltado-actividad').forEach(el => {
+                el.classList.remove('act-card-resaltado-actividad');
+            });
+
+            const badgeActividad = document.getElementById('badge-filtro-actividad');
+            const spanActividad = document.getElementById('nombre-actividad-filtrada');
+            const conteoActividad = document.getElementById('conteo-actividad-filtrada');
+
+            if (!texto) {
+                if (badgeActividad) badgeActividad.classList.add('hidden');
+                if (!monitorResaltado && contenedorTabla) {
+                    contenedorTabla.classList.remove('modo-resalte-activo');
+                }
+                return;
+            }
+
+            let count = 0;
+            document.querySelectorAll('.act-card').forEach(card => {
+                const inp = card.querySelector('.input-nombre-actividad');
+                if (inp) {
+                    const valTarjeta = inp.value.trim().toUpperCase();
+                    const coincide = (valTarjeta === texto) || 
+                                     (texto.length >= 3 && valTarjeta.startsWith(texto));
+                    if (coincide) {
+                        card.classList.add('act-card-resaltado-actividad');
+                        count++;
+                    }
+                }
+            });
+
+            if (badgeActividad && spanActividad) {
+                badgeActividad.classList.remove('hidden');
+                spanActividad.textContent = texto;
+                if (conteoActividad) conteoActividad.textContent = `(${count} sesiones)`;
+            }
+
+            if (contenedorTabla) {
+                contenedorTabla.classList.add('modo-resalte-activo');
+            }
+        }
+
+        function desmarcarActividad() {
+            actividadResaltada = null;
+            aplicarResalteActividadEnDOM('');
+            render();
+        }
+
         function render() {
             const contenedor = document.getElementById('contenedor-principal');
             if (!contenedor) return;
@@ -977,21 +1066,45 @@
                     totalHorasMonitor = (minutosTotal / 60).toFixed(2);
                 }
 
-                // GESTIÓN DEL CHIP DE FILTRO / RESALTE ACTIVO EN CABECERA
-                const badgeFiltro = document.getElementById('badge-filtro-monitor');
-                const spanFiltro = document.getElementById('nombre-monitor-filtrado');
-                const horasFiltro = document.getElementById('horas-monitor-filtrado');
-                if (badgeFiltro && spanFiltro) {
+                // GESTIÓN DEL CHIP DE RESALTE ACTIVO DE EMPLEADO
+                const badgeFiltroMonitor = document.getElementById('badge-filtro-monitor');
+                const spanFiltroMonitor = document.getElementById('nombre-monitor-filtrado');
+                const horasFiltroMonitor = document.getElementById('horas-monitor-filtrado');
+                if (badgeFiltroMonitor && spanFiltroMonitor) {
                     if (monitorResaltado) {
-                        badgeFiltro.classList.remove('hidden');
-                        spanFiltro.textContent = monitorResaltado.toUpperCase();
-                        if (horasFiltro) horasFiltro.textContent = `— ${totalHorasMonitor}h`;
+                        badgeFiltroMonitor.classList.remove('hidden');
+                        spanFiltroMonitor.textContent = monitorResaltado.toUpperCase();
+                        if (horasFiltroMonitor) horasFiltroMonitor.textContent = `— ${totalHorasMonitor}h`;
                     } else {
-                        badgeFiltro.classList.add('hidden');
+                        badgeFiltroMonitor.classList.add('hidden');
                     }
                 }
 
-                const claseModoResalte = monitorResaltado ? 'modo-resalte-activo' : '';
+                // GESTIÓN DEL CHIP DE ACTIVIDAD RESALTADA
+                const badgeFiltroActividad = document.getElementById('badge-filtro-actividad');
+                const spanFiltroActividad = document.getElementById('nombre-actividad-filtrada');
+                const conteoFiltroActividad = document.getElementById('conteo-actividad-filtrada');
+                if (badgeFiltroActividad && spanFiltroActividad) {
+                    if (actividadResaltada) {
+                        let count = 0;
+                        (semana.filas || []).forEach(f => {
+                            DIAS.forEach(d => {
+                                (f.dias[d] || []).forEach(a => {
+                                    if (a.actividad && a.actividad.trim().toUpperCase() === actividadResaltada) {
+                                        count++;
+                                    }
+                                });
+                            });
+                        });
+                        badgeFiltroActividad.classList.remove('hidden');
+                        spanFiltroActividad.textContent = actividadResaltada;
+                        if (conteoFiltroActividad) conteoFiltroActividad.textContent = `(${count} sesiones)`;
+                    } else {
+                        badgeFiltroActividad.classList.add('hidden');
+                    }
+                }
+
+                const claseModoResalte = (monitorResaltado || actividadResaltada) ? 'modo-resalte-activo' : '';
 
                 let htmlTabla = `
                     <div class="bg-white rounded-xl shadow-sm border border-slate-300 overflow-x-auto ${claseModoResalte}">
@@ -1080,9 +1193,15 @@
 
                                 const colorLetra = obtenerColorTextoActividad(act.actividad);
 
-                                // COMPROBAR SI ESTA TARJETA CONTIENE AL MONITOR RESALTADO
+                                // COMPROBAR SI CONTIENE AL MONITOR RESALTADO
                                 const tieneMonitorResaltado = monitorResaltado && (act.monitores || []).some(m => 
                                     m.monitor.toLowerCase() === monitorResaltado.toLowerCase() && m.asiste
+                                );
+
+                                // COMPROBAR SI COINCIDE CON LA ACTIVIDAD RESALTADA
+                                const esActividadMarcada = actividadResaltada && act.actividad && (
+                                    act.actividad.trim().toUpperCase() === actividadResaltada ||
+                                    (actividadResaltada.length >= 3 && act.actividad.trim().toUpperCase().startsWith(actividadResaltada))
                                 );
 
                                 const monitoresItemsHtml = (act.monitores || []).map((m, mIndex) => {
@@ -1125,16 +1244,20 @@
                                 }
 
                                 const esPrimeraCelda = (fIndex === 0 && dIdx === 0 && actIndex === 0);
+                                const claseResaltado = tieneMonitorResaltado ? 'act-card-resaltado' : (esActividadMarcada ? 'act-card-resaltado-actividad' : '');
 
                                 return `
-                                    <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5 transition-all ${tieneMonitorResaltado ? 'act-card-resaltado' : ''}" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
+                                    <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5 transition-all ${claseResaltado}" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
                                         <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
+                                            <!-- INPUT CON DETECCIÓN PERMANENTE QUE SE MANTIENE AL IMPRIMIR -->
                                             <input type="text" value="${act.actividad || ''}" placeholder="Actividad..." 
+                                                onfocus="manejarFocoActividad(this)"
+                                                oninput="manejarInputActividad(this)"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'actividad', this.value)" 
                                                 style="color: ${colorLetra};"
-                                                class="flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${act.actividad || ''}">
+                                                class="input-nombre-actividad flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${act.actividad || ''}">
                                             
-                                            ${tieneMonitorResaltado ? `
+                                            ${(tieneMonitorResaltado || esActividadMarcada) ? `
                                                 <span class="duracion-clase-pill font-black text-[9px] bg-amber-300 text-amber-950 px-1 py-0.2 rounded border border-amber-400 shadow-2xs shrink-0" title="Horas calculadas de la clase">
                                                     ${horasSlot.toFixed(2)}h
                                                 </span>
@@ -1360,6 +1483,7 @@
                 semana.filas[fIndex].dias[dia][actIndex][campo] = valor;
                 guardar();
                 if (campo === 'actividad') {
+                    actividadResaltada = valor.trim().toUpperCase() || null;
                     render();
                 }
             }
@@ -1622,6 +1746,17 @@
                     }
                 });
             }
+
+            // Tecla Escape para limpiar resaltes activos
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (actividadResaltada) {
+                        desmarcarActividad();
+                    } else if (monitorResaltado) {
+                        toggleResaltarMonitor(null);
+                    }
+                }
+            });
         }
 
         // TOUR DINÁMICO DE AYUDA
@@ -1660,8 +1795,8 @@
                 targetId: 'tour-imprimir',
                 icono: 'fa-print',
                 titulo: 'Imprimir o Guardar en PDF',
-                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has seleccionado a un monitor en el pie, sus clases y su nombre en la cabecera saldrán en tamaño grande y destacados en papel.',
-                tip: 'Elige la opción "Guardar como PDF" en tu navegador para enviárselo directamente a dicho monitor.'
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has marcado un monitor o una actividad, ¡sus casillas saldrán sombreadas en amarillo y destacadas en papel exactamente como en pantalla!',
+                tip: 'Elige la opción "Guardar como PDF" en tu navegador para generar copias digitales personalizadas.'
             },
             {
                 targetId: 'tour-control-fila',
@@ -1680,8 +1815,8 @@
             {
                 targetId: 'tour-actividad-card',
                 icono: 'fa-user-check',
-                titulo: 'Asignación, Asistencia y Colores Únicos',
-                descripcion: '<strong>Colores únicos:</strong> Tanto las actividades como los monitores tienen colores de texto exclusivos para identificarlos al instante.<br><br><strong>¿Cómo controlar la asistencia?</strong> Si un monitor no asiste o no imparte la clase, desmarca su casilla: su nombre se tachará y sus horas se restarán automáticamente del total semanal.',
+                titulo: 'Asignación, Asistencia y Resalte Automático',
+                descripcion: '<strong>Sombreado de actividad:</strong> Al hacer clic o escribir en el nombre de cualquier clase, ¡se sombrerán en amarillo todas las casillas donde se imparte esa misma actividad, conservándose intacto al imprimir!<br><br><strong>Colores únicos:</strong> Tanto las actividades como los monitores tienen colores de texto exclusivos para identificarlos al instante.',
                 tip: 'Para añadir otra actividad simultánea en la misma franja horaria (ej: dos salas a la vez), pulsa el botón verde (+) de la cabecera.'
             },
             {
@@ -1760,7 +1895,7 @@
             requestAnimationFrame(() => posicionarTarjetaTour(elem));
         }
 
-        // MEJORA 2: POSICIONAMIENTO QUE GARANTIZA QUE LA TARJETA NUNCA QUEDE FUERA DEL VISOR
+        // POSICIONAMIENTO QUE GARANTIZA QUE LA TARJETA NUNCA QUEDE FUERA DEL VISOR
         function posicionarTarjetaTour(targetElem) {
             const card = document.getElementById('tour-card');
             if (!targetElem || !card) return;
