@@ -7,13 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* CONTRASTE ACENTUADO DE FILAS */
         .fila-par {
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
         .fila-impar {
-            background-color: #e2e8f0 !important;
+            background-color: #e2e8f0 !important; /* Slate 200 marcado */
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
@@ -26,6 +27,7 @@
             transition: all 0.3s ease !important;
         }
 
+        /* AJUSTES PARA IMPRESIÓN COMPACTA EN 1 HOJA A4 HORIZONTAL */
         @media print {
             @page {
                 size: A4 landscape;
@@ -63,22 +65,87 @@
                 padding: 2px 2px !important;
                 page-break-inside: avoid !important;
             }
+
+            /* FONDO DE LAS CASILLAS TRANSPARENTE PARA COPIAR EL COLOR DE LA FILA */
             .act-card {
-                border: 1px solid #94a3b8 !important;
-                background-color: #ffffff !important;
+                border: 1px solid #64748b !important;
+                background-color: transparent !important;
                 padding: 1.5px 2px !important;
                 margin-bottom: 2px !important;
                 border-radius: 3px !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
+            .mon-badge {
+                background-color: transparent !important;
+                border: 1px solid #94a3b8 !important;
+            }
+
             input {
                 border: none !important;
                 background: transparent !important;
                 padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             input[type="time"]::-webkit-calendar-picker-indicator {
                 display: none !important;
+            }
+
+            /* 1. TRAMO DE HORAS (9:00 a 9:30) MUCHO MÁS GRANDE Y EN NEGRITA */
+            .celda-horario {
+                font-weight: 900 !important;
+            }
+            .celda-horario input[type="time"] {
+                font-size: 13px !important;
+                font-weight: 900 !important;
+                color: #000000 !important;
+                width: auto !important;
+            }
+            .celda-horario .hora-conector {
+                font-size: 10.5px !important;
+                font-weight: 900 !important;
+                color: #1e293b !important;
+            }
+            .celda-horario .duracion-badge {
+                font-size: 11px !important;
+                font-weight: 900 !important;
+                border: 1.5px solid #0e7490 !important;
+            }
+
+            /* 2. PERÍODO DEL CALENDARIO EN LETRA MÁS GRANDE EN IMPRESIÓN */
+            .contenedor-periodo {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+            }
+            .etiqueta-periodo {
+                font-size: 13px !important;
+                font-weight: 900 !important;
+                color: #0e7490 !important;
+            }
+            .input-periodo {
+                font-size: 16px !important;
+                font-weight: 900 !important;
+                color: #0f172a !important;
+                width: 500px !important;
+            }
+
+            /* 3. PIE DE TOTALES DESTACADO Y MÁS GRANDE */
+            tfoot tr {
+                background-color: #cbd5e1 !important;
+                border-top: 3px solid #334155 !important;
+            }
+            tfoot td {
+                font-size: 11.5px !important;
+                padding: 4px 5px !important;
+            }
+            #resumen-monitores div {
+                font-size: 11px !important;
+                padding: 2px 6px !important;
+                border: 1.5px solid #475569 !important;
+            }
+            #resumen-monitores .total-horas-num {
+                font-size: 12.5px !important;
+                font-weight: 900 !important;
             }
         }
     </style>
@@ -139,9 +206,10 @@
                 <p class="text-[10px] text-slate-500">Desmarca la casilla del monitor si no asiste para no contabilizar sus horas.</p>
             </div>
             
-            <div id="tour-fechas" class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded-lg">
-                <label class="text-[10px] font-bold text-slate-500 uppercase">Período:</label>
-                <input type="text" id="semana-rango" onchange="actualizarRangoTexto(this.value)" class="font-bold text-xs bg-transparent outline-none text-slate-800 w-64">
+            <!-- PERÍODO DEL CALENDARIO (AMPLIADO EN IMPRESIÓN) -->
+            <div id="tour-fechas" class="contenedor-periodo flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded-lg">
+                <label class="etiqueta-periodo text-[10px] font-bold text-slate-500 uppercase">Período:</label>
+                <input type="text" id="semana-rango" onchange="actualizarRangoTexto(this.value)" class="input-periodo font-bold text-xs bg-transparent outline-none text-slate-800 w-64">
             </div>
         </div>
 
@@ -221,7 +289,7 @@
 
                 <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="check-autobackup" onchange="toggleAutoBackup(this.checked)" class="w-4 h-4 accent-amber-600 rounded">
+                        <input type="checkbox" id="check-autobackup" checked onchange="toggleAutoBackup(this.checked)" class="w-4 h-4 accent-amber-600 rounded">
                         <span class="text-xs font-bold text-slate-800">Descargar copia automática al entrar</span>
                     </label>
                     <p class="text-[10px] text-slate-500 ml-6">
@@ -312,8 +380,60 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_V2';
+        const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_V5';
         const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+
+        const PALETA_COLORES_ACTIVIDAD = [
+            '#dc2626', '#2563eb', '#16a34a', '#0d9488', '#7c3aed', 
+            '#db2777', '#ea580c', '#d97706', '#4f46e5', '#059669', 
+            '#991b1b', '#0284c7', '#b91c1c'
+        ];
+
+        function obtenerColorTextoActividad(nombre) {
+            if (!nombre || !nombre.trim()) return '#0f172a';
+            const clean = nombre.trim().toUpperCase();
+            
+            if (clean.includes('PUMP')) return '#dc2626';
+            if (clean.includes('PILATES')) return '#2563eb';
+            if (clean.includes('MAYORES')) return '#16a34a';
+            if (clean.includes('CICLO')) return '#0d9488';
+            if (clean.includes('CORE')) return '#7c3aed';
+            if (clean.includes('ZUMBA')) return '#db2777';
+            if (clean.includes('STEP')) return '#ea580c';
+            if (clean.includes('CROSS')) return '#d97706';
+            if (clean.includes('GAP')) return '#4f46e5';
+            if (clean.includes('COMBAT')) return '#991b1b';
+            if (clean.includes('ESTIRAMIENTOS') || clean.includes('BALANCE')) return '#059669';
+
+            let hash = 0;
+            for (let i = 0; i < clean.length; i++) {
+                hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return PALETA_COLORES_ACTIVIDAD[Math.abs(hash) % PALETA_COLORES_ACTIVIDAD.length];
+        }
+
+        const PALETA_COLORES_MONITOR = [
+            '#7e22ce', '#0369a1', '#047857', '#c2410c', '#4338ca', 
+            '#b45309', '#be123c', '#0f766e', '#1d4ed8', '#a21caf', '#334155'
+        ];
+
+        function obtenerColorTextoMonitor(nombre) {
+            if (!nombre || !nombre.trim()) return '#334155';
+            const clean = nombre.trim().toUpperCase();
+
+            if (clean.includes('JULIA')) return '#7e22ce';
+            if (clean.includes('DIEGO')) return '#0369a1';
+            if (clean.includes('FRAN')) return '#047857';
+            if (clean.includes('ALBERTO')) return '#c2410c';
+            if (clean.includes('LVARO')) return '#4338ca';
+            if (clean.includes('JACOBO')) return '#b45309';
+
+            let hash = 0;
+            for (let i = 0; i < clean.length; i++) {
+                hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return PALETA_COLORES_MONITOR[Math.abs(hash) % PALETA_COLORES_MONITOR.length];
+        }
 
         let appData = {
             monitores: ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'],
@@ -341,7 +461,7 @@
                 data.semanas = [];
             }
             if (!data.config || typeof data.config !== 'object') {
-                data.config = { autoBackup: false };
+                data.config = { autoBackup: true };
             }
 
             data.semanas.forEach((sem, idx) => {
@@ -411,7 +531,6 @@
             return appData.semanas.find(s => s.id === appData.semanaActivaId) || appData.semanas[0];
         }
 
-        // CARGA EXACTA DE LA IMAGEN FACILITADA
         function cargarPlantillaOficialDesdeImagen() {
             appData.monitores = ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'];
             
@@ -419,7 +538,6 @@
                 id: 'sem_' + Date.now(),
                 rango: 'A PARTIR DEL 12 SEPTIEMBRE 2026',
                 filas: [
-                    // 9:00
                     {
                         id: 'f_900', horaInicio: '09:00', horaFin: '09:30',
                         dias: {
@@ -431,7 +549,6 @@
                             sabado: []
                         }
                     },
-                    // 9:30
                     {
                         id: 'f_930', horaInicio: '09:30', horaFin: '10:00',
                         dias: {
@@ -443,7 +560,6 @@
                             sabado: []
                         }
                     },
-                    // 10:00
                     {
                         id: 'f_1000', horaInicio: '10:00', horaFin: '11:00',
                         dias: {
@@ -471,7 +587,6 @@
                             sabado: []
                         }
                     },
-                    // 11:00
                     {
                         id: 'f_1100', horaInicio: '11:00', horaFin: '12:00',
                         dias: {
@@ -498,7 +613,6 @@
                             sabado: []
                         }
                     },
-                    // 14:30
                     {
                         id: 'f_1430', horaInicio: '14:30', horaFin: '15:30',
                         dias: {
@@ -510,7 +624,6 @@
                             sabado: []
                         }
                     },
-                    // 18:30
                     {
                         id: 'f_1830', horaInicio: '18:30', horaFin: '19:00',
                         dias: {
@@ -522,7 +635,6 @@
                             sabado: []
                         }
                     },
-                    // 19:00
                     {
                         id: 'f_1900', horaInicio: '19:00', horaFin: '19:30',
                         dias: {
@@ -534,7 +646,6 @@
                             sabado: []
                         }
                     },
-                    // 19:30
                     {
                         id: 'f_1930', horaInicio: '19:30', horaFin: '20:00',
                         dias: {
@@ -549,7 +660,6 @@
                             sabado: []
                         }
                     },
-                    // 20:00
                     {
                         id: 'f_2000', horaInicio: '20:00', horaFin: '20:30',
                         dias: {
@@ -570,7 +680,6 @@
                             sabado: []
                         }
                     },
-                    // 20:30
                     {
                         id: 'f_2030', horaInicio: '20:30', horaFin: '21:15',
                         dias: {
@@ -622,7 +731,6 @@
             render();
         }
 
-        // BACKUP
         function abrirModalBackup() {
             document.getElementById('check-autobackup').checked = !!(appData.config && appData.config.autoBackup);
             document.getElementById('modal-backup').classList.remove('hidden');
@@ -692,7 +800,6 @@
             event.target.value = '';
         }
 
-        // RENDERIZADO
         function render() {
             const contenedor = document.getElementById('contenedor-principal');
             if (!contenedor) return;
@@ -776,15 +883,16 @@
                             </td>
                         `;
 
+                        // COLUMNA DE HORARIOS: CON CLASES PARA RESALTAR TRAMO EN IMPRESIÓN
                         let tdHorario = `
-                            <td class="p-1 border border-slate-300 text-center align-top font-sans" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
+                            <td class="celda-horario p-1 border border-slate-300 text-center align-top font-sans" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
                                 <div class="flex flex-col items-center space-y-0.5">
                                     <input type="time" value="${fila.horaInicio || '09:00'}" onchange="actualizarHorario(${fIndex}, 'horaInicio', this.value)" 
                                         class="border border-slate-300 rounded px-1 py-0.5 font-mono text-[11px] bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
-                                    <div class="text-[8.5px] text-slate-500 font-bold uppercase">a</div>
+                                    <div class="hora-conector text-[8.5px] text-slate-500 font-bold uppercase">a</div>
                                     <input type="time" value="${fila.horaFin || '10:00'}" onchange="actualizarHorario(${fIndex}, 'horaFin', this.value)" 
                                         class="border border-slate-300 rounded px-1 py-0.5 font-mono text-[11px] bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
-                                    <div class="mt-0.5 text-[9.5px] font-black text-cyan-950 bg-cyan-200/90 rounded py-0.5 w-23 text-center">
+                                    <div class="duracion-badge mt-0.5 text-[9.5px] font-black text-cyan-950 bg-cyan-200/90 rounded py-0.5 w-23 text-center">
                                         ${horasSlot.toFixed(2)} h
                                     </div>
                                 </div>
@@ -800,17 +908,26 @@
                                 const tieneMonitores = act.monitores && act.monitores.length > 0;
                                 const esUltimaActividad = actIndex === actividades.length - 1;
 
-                                const monitoresItemsHtml = (act.monitores || []).map((m, mIndex) => `
-                                    <div class="inline-flex items-center gap-1 px-1 py-0.5 rounded ${m.asiste ? 'bg-cyan-50 border border-cyan-200' : 'bg-red-50 border border-red-200 opacity-60'}">
-                                        <label class="flex items-center gap-1 cursor-pointer truncate mr-0.5" title="${m.monitor} (Click para computar o no sus horas)">
-                                            <input type="checkbox" ${m.asiste ? 'checked' : ''} onchange="toggleAsistencia(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" class="w-3 h-3 accent-cyan-700">
-                                            <span class="font-medium truncate ${m.asiste ? 'text-slate-800' : 'line-through text-red-600'} text-[10px] max-w-[95px]">${m.monitor}</span>
-                                        </label>
-                                        <button onclick="quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px]">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                `).join('');
+                                const colorLetra = obtenerColorTextoActividad(act.actividad);
+
+                                const monitoresItemsHtml = (act.monitores || []).map((m, mIndex) => {
+                                    const colorMonitor = obtenerColorTextoMonitor(m.monitor);
+
+                                    return `
+                                        <div class="mon-badge inline-flex items-center gap-1 px-1 py-0.5 rounded ${m.asiste ? 'bg-cyan-50/70 border border-cyan-300/80' : 'bg-red-50 border border-red-200 opacity-60'}">
+                                            <label class="flex items-center gap-1 cursor-pointer truncate mr-0.5" title="${m.monitor} (Click para activar o desactivar sus horas)">
+                                                <input type="checkbox" ${m.asiste ? 'checked' : ''} onchange="toggleAsistencia(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" class="w-3 h-3 accent-cyan-700">
+                                                <span class="font-extrabold truncate ${m.asiste ? '' : 'line-through opacity-50'} text-[10px] max-w-[95px]"
+                                                      style="color: ${m.asiste ? colorMonitor : '#ef4444'};">
+                                                    ${m.monitor}
+                                                </span>
+                                            </label>
+                                            <button onclick="quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px]">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                                }).join('');
 
                                 let bloqueMonitores = '';
                                 if (tieneMonitores) {
@@ -833,16 +950,18 @@
 
                                 const esPrimeraCelda = (fIndex === 0 && dIdx === 0 && actIndex === 0);
 
+                                // CASILLA CON FONDO TRANSPARENTE: ADOPTA EL MISMO COLOR DE LA FILA (BLANCO O GRIS)
                                 return `
-                                    <div class="act-card bg-white p-1 rounded border border-slate-300 shadow-2xs mb-1 space-y-0.5" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
-                                        <div class="flex items-center gap-1 border-b border-dashed border-slate-200 pb-0.5">
+                                    <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5" ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}>
+                                        <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
                                             <input type="text" value="${act.actividad || ''}" placeholder="Actividad..." 
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'actividad', this.value)" 
-                                                class="flex-1 min-w-0 font-bold text-slate-800 placeholder-slate-300 outline-none text-[11px] truncate" title="${act.actividad || ''}">
+                                                style="color: ${colorLetra};"
+                                                class="flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${act.actividad || ''}">
                                             
                                             <input type="text" value="${act.sala || ''}" placeholder="Sal" maxlength="3"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'sala', this.value)" 
-                                                class="w-7 text-[9px] text-slate-600 uppercase font-bold text-center placeholder-slate-300 outline-none bg-slate-100 rounded px-0.5 shrink-0" title="Sala / Vaso (ej: S7, S3, S2, SC)">
+                                                class="w-7 text-[9px] text-slate-700 uppercase font-bold text-center placeholder-slate-300 outline-none border border-slate-400/60 rounded px-0.5 shrink-0 bg-white/40" title="Sala / Vaso (ej: S7, S3, S2, SC)">
                                             
                                             <button onclick="eliminarActividad(${fIndex}, '${dia}', ${actIndex})" title="Eliminar actividad" class="text-slate-300 hover:text-red-600 no-print text-[9px] ml-0.5 shrink-0">
                                                 <i class="fa-solid fa-trash-can"></i>
@@ -931,10 +1050,12 @@
                 const horasDecimal = (minutos / 60).toFixed(2);
                 const hEnteras = Math.floor(minutos / 60);
                 const mRestantes = Math.round(minutos % 60);
+                const colorMonitor = obtenerColorTextoMonitor(monitor);
+
                 return `
                     <div class="bg-white px-1.5 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1">
-                        <span class="font-bold text-slate-800 text-[10.5px]">${monitor}:</span>
-                        <span class="text-cyan-900 font-black text-[11px]">${horasDecimal}h</span>
+                        <span class="font-black text-[10.5px]" style="color: ${colorMonitor};">${monitor}:</span>
+                        <span class="total-horas-num text-slate-950 font-black text-[11px]">${horasDecimal}h</span>
                         <span class="text-[9px] text-slate-500">(${hEnteras}h ${mRestantes}m)</span>
                     </div>
                 `;
@@ -1048,6 +1169,9 @@
             if (semana && semana.filas[fIndex].dias[dia][actIndex]) {
                 semana.filas[fIndex].dias[dia][actIndex][campo] = valor;
                 guardar();
+                if (campo === 'actividad') {
+                    render();
+                }
             }
         }
 
@@ -1080,12 +1204,16 @@
             input.value = '';
 
             const badgesCont = document.getElementById('badges-monitores-disponibles');
-            badgesCont.innerHTML = appData.monitores.map((m, idx) => `
-                <button type="button" onclick="agregarAlInputAsignar('${m}')" 
-                    class="bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-400 text-slate-700 rounded px-1.5 py-0.5 text-xs transition flex items-center gap-1 shadow-2xs">
-                    <span class="font-bold text-cyan-800">${idx + 1}.</span> ${m}
-                </button>
-            `).join('');
+            badgesCont.innerHTML = appData.monitores.map((m, idx) => {
+                const colorM = obtenerColorTextoMonitor(m);
+                return `
+                    <button type="button" onclick="agregarAlInputAsignar('${m}')" 
+                        class="bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-400 text-slate-700 rounded px-1.5 py-0.5 text-xs transition flex items-center gap-1 shadow-2xs">
+                        <span class="font-bold text-cyan-800">${idx + 1}.</span> 
+                        <span class="font-extrabold" style="color: ${colorM};">${m}</span>
+                    </button>
+                `;
+            }).join('');
 
             document.getElementById('modal-asignar-monitores').classList.remove('hidden');
             setTimeout(() => input.focus(), 50);
@@ -1182,14 +1310,17 @@
                 cont.innerHTML = '<p class="text-slate-400 text-xs text-center p-2">No hay monitores registrados.</p>';
                 return;
             }
-            cont.innerHTML = appData.monitores.map((m, idx) => `
-                <div class="flex justify-between items-center py-1 px-1">
-                    <span class="text-xs font-medium text-slate-700">${idx + 1}. ${m}</span>
-                    <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1" title="Eliminar">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            `).join('');
+            cont.innerHTML = appData.monitores.map((m, idx) => {
+                const colorM = obtenerColorTextoMonitor(m);
+                return `
+                    <div class="flex justify-between items-center py-1 px-1">
+                        <span class="text-xs font-black" style="color: ${colorM};">${idx + 1}. ${m}</span>
+                        <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1" title="Eliminar">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
         }
 
         function agregarMonitorGlobal(e) {
@@ -1341,7 +1472,7 @@
                 targetId: 'tour-imprimir',
                 icono: 'fa-print',
                 titulo: 'Imprimir o Guardar en PDF',
-                descripcion: 'Prepara el cuadrante en formato horizontal A4, ocultando botones de edición para que encaje limpio en un solo folio.',
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. El período del calendario, los tramos de horas y el pie de totales se imprimen en tamaño más grande y en negrita para una lectura óptima.',
                 tip: 'Elige la opción "Guardar como PDF" en tu navegador si deseas enviarlo por WhatsApp o correo electrónico.'
             },
             {
@@ -1355,22 +1486,22 @@
                 targetId: 'tour-horario-slot',
                 icono: 'fa-clock',
                 titulo: 'Horarios y Cómputo de Duración',
-                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo.',
+                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo. En la impresión en papel se resalta automáticamente en tamaño mayor y negrita.',
                 tip: 'Las casillas de hora muestran claramente horas y minutos sin que el icono del reloj estorbe.'
             },
             {
                 targetId: 'tour-actividad-card',
                 icono: 'fa-user-check',
-                titulo: 'Asignación y Control de Asistencia',
-                descripcion: '<strong>¿Cómo asignar monitores?</strong> Pulsa el botón <strong>+ Monitor</strong> (o <strong>+👤</strong> si ya hay uno). Puedes hacer clic sobre los nombres o escribir varios separados por comas.<br><br><strong>¿Cómo controlar la asistencia?</strong> Cada monitor tiene una <strong>casilla de verificación</strong>. Si el monitor finalmente no asiste o no imparte la clase, <strong>desmarca la casilla</strong>: su nombre se tachará y sus horas se descontarán automáticamente del total semanal.',
+                titulo: 'Asignación, Asistencia y Colores Únicos',
+                descripcion: '<strong>Colores únicos:</strong> Tanto las actividades como los <strong>monitores</strong> tienen colores de texto exclusivos para identificarlos al instante.<br><br><strong>¿Cómo asignar monitores?</strong> Pulsa <strong>+ Monitor</strong> (o <strong>+👤</strong>). Haz clic sobre los nombres o escribe varios separados por comas.<br><br><strong>¿Cómo controlar la asistencia?</strong> Si un monitor no asiste o no imparte la clase, <strong>desmarca su casilla</strong>: su nombre se tachará y sus horas se restarán automáticamente del total semanal.',
                 tip: 'Para añadir otra actividad simultánea en la misma franja horaria (ej: dos salas a la vez), pulsa el botón verde (+) de la cabecera.'
             },
             {
                 targetId: 'tour-totales-pie',
                 icono: 'fa-calculator',
                 titulo: 'Cálculo de Horas Semanales por Monitor',
-                descripcion: 'Suma en tiempo real el total de horas exactas impartidas por cada monitor en la semana activa. Solo contabiliza las clases que tengan su casilla marcada.',
-                tip: 'Muestra tanto las horas decimales como el desglose exacto en horas y minutos.'
+                descripcion: 'Suma en tiempo real el total de horas exactas impartidas por cada monitor en la semana activa. Cada monitor aparece con su color correspondiente para asociarlo de inmediato a sus clases.',
+                tip: 'En la versión impresa este pie se amplía de tamaño para facilitar el control de nóminas y partes de horas.'
             }
         ];
 
