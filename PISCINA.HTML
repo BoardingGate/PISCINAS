@@ -387,7 +387,7 @@
                     <i class="fa-solid fa-calendar-plus"></i> Calendario en Blanco
                 </button>
 
-                <!-- NUEVO BOTÓN: IA IMPORTACIÓN DESDE FOTOGRAFÍA -->
+                <!-- BOTÓN: IA IMPORTACIÓN DESDE FOTOGRAFÍA -->
                 <button id="tour-ia-import" onclick="abrirModalIAImport()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-3 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> IA Importación
                 </button>
@@ -554,9 +554,9 @@
 
     </div>
 
-    <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA -->
+    <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA (CON CAMPO PARA MODELO CONFIGURABLE) -->
     <div id="modal-ia-import" class="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-5 space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-5 space-y-3.5 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-sm md:text-base font-black text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Importar Calendario desde Foto con IA
@@ -571,7 +571,7 @@
             </p>
 
             <!-- SELECTOR DE FOTOGRAFÍA -->
-            <div class="space-y-2">
+            <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-slate-700">1. Selecciona la imagen o fotografía del horario:</label>
                 <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/50 rounded-xl p-4 text-center cursor-pointer transition relative">
                     <input type="file" id="input-foto-ia" accept="image/*" onchange="previsualizarFotoIA(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
@@ -580,24 +580,38 @@
                         <p class="text-xs font-bold text-slate-700">Haz clic aquí para seleccionar la imagen</p>
                         <p class="text-[10px] text-slate-400">Formatos soportados: JPG, PNG, WEBP</p>
                     </div>
-                    <img id="img-previa-ia" class="hidden mx-auto max-h-48 rounded-lg shadow-sm border border-slate-200 object-contain">
+                    <img id="img-previa-ia" class="hidden mx-auto max-h-44 rounded-lg shadow-sm border border-slate-200 object-contain">
                 </div>
             </div>
 
-            <!-- CLAVE API GEMINI (GRATIS) -->
-            <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div class="flex justify-between items-center">
-                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-key text-amber-500"></i> Clave API de Google Gemini (Gratuita):
-                    </label>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-indigo-600 hover:underline font-bold">
-                        Obtener clave gratis <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
+            <!-- CONFIGURACIÓN API Y NOMBRE DEL MODELO (POR DEFECTO: gemini-3.1-pro-preview) -->
+            <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <!-- CAMPO CLAVE API -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-key text-amber-500"></i> Clave API Gemini:
+                            </label>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[9.5px] text-indigo-600 hover:underline font-bold">
+                                Obtener clave <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                        <input type="password" id="input-api-key-gemini" placeholder="Pega tu clave API..." 
+                            class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
+                    </div>
+
+                    <!-- CAMPO NOMBRE DEL MODELO (CONFIGURABLE) -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                            <i class="fa-solid fa-microchip text-purple-600"></i> Modelo de IA:
+                        </label>
+                        <input type="text" id="input-modelo-gemini" value="gemini-3.1-pro-preview" placeholder="Ej: gemini-3.1-pro-preview" 
+                            class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono font-extrabold text-purple-900">
+                    </div>
                 </div>
-                <input type="password" id="input-api-key-gemini" placeholder="Pega aquí tu clave API de Gemini..." 
-                    class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
                 <p class="text-[10px] text-slate-400">
-                    * Se guarda de forma segura en tu propio navegador. No requiere tarjeta de crédito.
+                    * Ambos campos se guardan en tu navegador. Puedes cambiar o probar otros modelos en cualquier momento.
                 </p>
             </div>
 
@@ -1227,7 +1241,6 @@
             if (!nombre.trim()) nombre = 'Semana ' + (appData.semanas.length + 1);
 
             const filasGeneradas = [];
-            // Inicia a las 07:00 y finaliza a las 23:00
             for (let hora = 7; hora < 23; hora++) {
                 const hInicio = String(hora).padStart(2, '0') + ':00';
                 const hFin = String(hora + 1).padStart(2, '0') + ':00';
@@ -1255,7 +1268,9 @@
         // ==========================================================
         function abrirModalIAImport() {
             const apiKeyGuardada = localStorage.getItem('GEMINI_API_KEY') || '';
+            const modeloGuardado = localStorage.getItem('GEMINI_MODEL') || 'gemini-3.1-pro-preview';
             document.getElementById('input-api-key-gemini').value = apiKeyGuardada;
+            document.getElementById('input-modelo-gemini').value = modeloGuardado;
             document.getElementById('input-foto-ia').value = '';
             document.getElementById('img-previa-ia').classList.add('hidden');
             document.getElementById('vista-previa-vacia').classList.remove('hidden');
@@ -1280,7 +1295,6 @@
                 img.classList.remove('hidden');
                 document.getElementById('vista-previa-vacia').classList.add('hidden');
 
-                // Extraer solo la parte base64 sin el encabezado data:image/...;base64,
                 const base64Parts = e.target.result.split(',');
                 imagenBase64IA = {
                     mimeType: file.type || 'image/jpeg',
@@ -1299,14 +1313,18 @@
             const apiKeyInput = document.getElementById('input-api-key-gemini');
             const apiKey = apiKeyInput.value.trim();
 
+            const modeloInput = document.getElementById('input-modelo-gemini');
+            const modelo = (modeloInput ? modeloInput.value.trim() : '') || 'gemini-3.1-pro-preview';
+
             if (!apiKey) {
-                alert('Introduce una clave API de Gemini. Puedes conseguir una gratuita en 30 segundos pulsando en el enlace "Obtener clave gratis".');
+                alert('Introduce una clave API de Gemini. Puedes conseguir una gratuita en 30 segundos pulsando en el enlace "Obtener clave".');
                 apiKeyInput.focus();
                 return;
             }
 
-            // Guardar clave API en localStorage para futuros usos
+            // Guardar configuración en localStorage
             localStorage.setItem('GEMINI_API_KEY', apiKey);
+            localStorage.setItem('GEMINI_MODEL', modelo);
 
             // Mostrar estado de carga
             const estadoCarga = document.getElementById('estado-carga-ia');
@@ -1315,8 +1333,8 @@
             btnEjecutar.disabled = true;
 
             const promptSistema = `
-                Eres un asistente experto en digitalización de cuadrantes y calendarios de gimnasio y actividades dirigidas.
-                Analiza detenidamente la fotografía adjunta que contiene un horario/cuadrante semanal.
+                Eres un asistente experto en digitalización de cuadrantes y calendarios de actividades dirigidas.
+                Analiza detenidamente la fotografía adjunta que contiene un horario o cuadrante semanal.
                 Extrae con precisión las franjas horarias (horaInicio y horaFin en formato 24h HH:MM) y las actividades que aparecen en cada día de la semana (lunes, martes, miercoles, jueves, viernes, sabado).
                 Si en una casilla aparece una sala o vaso (como S7, S3, S2, SC, PISC), inclúyela en el campo "sala".
                 
@@ -1342,7 +1360,7 @@
             `;
 
             try {
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`;
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
 
                 const requestBody = {
                     contents: [
@@ -1372,7 +1390,7 @@
 
                 if (!response.ok) {
                     const errData = await response.json();
-                    throw new Error(errData.error?.message || 'Error al conectar con la IA de Gemini');
+                    throw new Error(errData.error?.message || `Error al conectar con la IA (${response.status})`);
                 }
 
                 const dataRes = await response.json();
@@ -1382,8 +1400,14 @@
                     throw new Error('La IA no devolvió ningún contenido legible.');
                 }
 
-                // Limpiar posibles bloques markdown si los hubiese
-                const jsonLimpio = textoGenerado.replace(/```json/g, '').replace(/```/g, '').trim();
+                // Extracción limpia del JSON entre la primera y la última llave
+                let jsonLimpio = textoGenerado.trim();
+                const firstBrace = jsonLimpio.indexOf('{');
+                const lastBrace = jsonLimpio.lastIndexOf('}');
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    jsonLimpio = jsonLimpio.substring(firstBrace, lastBrace + 1);
+                }
+
                 const objetoImportado = JSON.parse(jsonLimpio);
 
                 if (!objetoImportado.filas || !Array.isArray(objetoImportado.filas)) {
@@ -1401,7 +1425,7 @@
                             diasMapeados[d] = arr.map(act => ({
                                 actividad: (act.actividad || '').toUpperCase().trim(),
                                 sala: (act.sala || '').toUpperCase().trim(),
-                                monitores: [] // Las asignaciones de monitores quedan libres para asignarse luego
+                                monitores: []
                             }));
                         });
 
@@ -1414,7 +1438,6 @@
                     })
                 };
 
-                // Añadir a las semanas existentes y activar
                 appData.semanas.push(nuevoCalendario);
                 appData.semanaActivaId = nuevoCalendario.id;
 
@@ -1423,7 +1446,7 @@
                 cerrarModalIAImport();
                 render();
 
-                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias y todas sus actividades.`);
+                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias y todas sus actividades mediante ${modelo}.`);
 
             } catch (error) {
                 console.error("Error en importación IA:", error);
@@ -1514,7 +1537,6 @@
             }
         }
 
-        // SINCRONIZACIÓN AUTOMÁTICA DE VISTA SEGÚN RESALTE
         function sincronizarVistaSegunResalte() {
             const hayResalteActivo = !!(monitorResaltado || actividadResaltada);
             if (hayResalteActivo) {
@@ -1623,7 +1645,6 @@
             render();
         }
 
-        // RENDERIZAR PANEL CON BOTÓN DE ASPA (✕) PARA ELIMINAR REFERENCIAS
         function renderPanelModoRapido() {
             // 1. Renderizar Actividades con aspa
             const contAct = document.getElementById('contenedor-pills-actividades');
@@ -2866,7 +2887,7 @@
                 icono: 'fa-wand-magic-sparkles',
                 titulo: 'Importación Inteligente con IA',
                 descripcion: 'Sube o arrastra una fotografía de cualquier cuadrante de actividades para que la Inteligencia Artificial cree un nuevo calendario estructurando las franjas horarias y actividades correspondientes.',
-                tip: 'Funciona con una clave API gratuita de Google Gemini que se guarda en tu propio navegador.'
+                tip: 'Configurado por defecto con gemini-3.1-pro-preview. Puedes cambiar el modelo en cualquier momento en el panel.'
             },
             {
                 targetId: 'btn-vista-completa',
