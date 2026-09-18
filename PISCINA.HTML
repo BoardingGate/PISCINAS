@@ -382,8 +382,14 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-1.5">
+                <!-- BOTÓN CALENDARIO EN BLANCO (DESDE LAS 07:00 HASTA LAS 23:00) -->
                 <button id="tour-nuevo" onclick="crearSemanaEnBlanco()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-calendar-plus"></i> Calendario en Blanco
+                </button>
+
+                <!-- NUEVO BOTÓN: IA IMPORTACIÓN DESDE FOTOGRAFÍA -->
+                <button id="tour-ia-import" onclick="abrirModalIAImport()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-3 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> IA Importación
                 </button>
 
                 <button id="tour-clonar" onclick="clonarSemanaActual()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
@@ -546,6 +552,75 @@
 
         <div id="contenedor-principal"></div>
 
+    </div>
+
+    <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA -->
+    <div id="modal-ia-import" class="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-5 space-y-4 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm md:text-base font-black text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Importar Calendario desde Foto con IA
+                </h3>
+                <button onclick="cerrarModalIAImport()" class="text-slate-400 hover:text-slate-600 text-base cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Sube una fotografía de un cuadrante semanal de actividades y la IA creará un <b>nuevo calendario</b> con las franjas horarias y actividades detectadas.
+            </p>
+
+            <!-- SELECTOR DE FOTOGRAFÍA -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-700">1. Selecciona la imagen o fotografía del horario:</label>
+                <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/50 rounded-xl p-4 text-center cursor-pointer transition relative">
+                    <input type="file" id="input-foto-ia" accept="image/*" onchange="previsualizarFotoIA(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                    <div id="vista-previa-vacia" class="space-y-1">
+                        <i class="fa-solid fa-camera text-2xl text-purple-500"></i>
+                        <p class="text-xs font-bold text-slate-700">Haz clic aquí para seleccionar la imagen</p>
+                        <p class="text-[10px] text-slate-400">Formatos soportados: JPG, PNG, WEBP</p>
+                    </div>
+                    <img id="img-previa-ia" class="hidden mx-auto max-h-48 rounded-lg shadow-sm border border-slate-200 object-contain">
+                </div>
+            </div>
+
+            <!-- CLAVE API GEMINI (GRATIS) -->
+            <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-amber-500"></i> Clave API de Google Gemini (Gratuita):
+                    </label>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-indigo-600 hover:underline font-bold">
+                        Obtener clave gratis <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+                <input type="password" id="input-api-key-gemini" placeholder="Pega aquí tu clave API de Gemini..." 
+                    class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
+                <p class="text-[10px] text-slate-400">
+                    * Se guarda de forma segura en tu propio navegador. No requiere tarjeta de crédito.
+                </p>
+            </div>
+
+            <!-- ESTADO / SPINNER DE CARGA -->
+            <div id="estado-carga-ia" class="hidden text-center py-2 space-y-2">
+                <div class="inline-block animate-spin text-purple-600 text-2xl">
+                    <i class="fa-solid fa-circle-notch"></i>
+                </div>
+                <p class="text-xs font-black text-purple-900 animate-pulse" id="texto-estado-ia">
+                    Analizando cuadrícula y reconociendo actividades...
+                </p>
+            </div>
+
+            <!-- ACCIONES -->
+            <div class="flex justify-end gap-2 pt-2 border-t">
+                <button onclick="cerrarModalIAImport()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
+                    Cancelar
+                </button>
+                <button id="btn-ejecutar-ia" onclick="ejecutarImportacionIA()" class="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-lg text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Analizar e Importar
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL BORRAR O VACIAR CALENDARIO -->
@@ -842,6 +917,9 @@
 
         // ESTADO DE VISTA COMPLETA (SIN SCROLL)
         let vistaCompletaActiva = false;
+
+        // FOTO SUBIDA PARA IA
+        let imagenBase64IA = null;
 
         let contextoAsignacion = null;
         let monitorResaltado = null;
@@ -1142,14 +1220,15 @@
             appData.semanaActivaId = nueva.id;
         }
 
-        // CREAR CALENDARIO EN BLANCO CON FRANGAS DE 1 HORA DESDE LAS 9:00 A LAS 23:00
+        // CREAR CALENDARIO EN BLANCO: PARTE DESDE LAS 07:00 DE LA MAÑANA HASTA LAS 23:00
         function crearSemanaEnBlanco() {
             let nombre = prompt('Introduce el nombre o fechas del nuevo calendario en blanco:', 'Semana ' + (appData.semanas.length + 1));
             if (nombre === null) return;
             if (!nombre.trim()) nombre = 'Semana ' + (appData.semanas.length + 1);
 
             const filasGeneradas = [];
-            for (let hora = 9; hora < 23; hora++) {
+            // Inicia a las 07:00 y finaliza a las 23:00
+            for (let hora = 7; hora < 23; hora++) {
                 const hInicio = String(hora).padStart(2, '0') + ':00';
                 const hFin = String(hora + 1).padStart(2, '0') + ':00';
                 filasGeneradas.push({
@@ -1169,6 +1248,190 @@
             appData.semanaActivaId = nueva.id;
             guardar();
             render();
+        }
+
+        // ==========================================================
+        // --- MODAL Y PROCESO DE IMPORTACIÓN POR IA DESDE FOTO ---
+        // ==========================================================
+        function abrirModalIAImport() {
+            const apiKeyGuardada = localStorage.getItem('GEMINI_API_KEY') || '';
+            document.getElementById('input-api-key-gemini').value = apiKeyGuardada;
+            document.getElementById('input-foto-ia').value = '';
+            document.getElementById('img-previa-ia').classList.add('hidden');
+            document.getElementById('vista-previa-vacia').classList.remove('hidden');
+            document.getElementById('estado-carga-ia').classList.add('hidden');
+            document.getElementById('btn-ejecutar-ia').disabled = false;
+            imagenBase64IA = null;
+            document.getElementById('modal-ia-import').classList.remove('hidden');
+        }
+
+        function cerrarModalIAImport() {
+            document.getElementById('modal-ia-import').classList.add('hidden');
+        }
+
+        function previsualizarFotoIA(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('img-previa-ia');
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                document.getElementById('vista-previa-vacia').classList.add('hidden');
+
+                // Extraer solo la parte base64 sin el encabezado data:image/...;base64,
+                const base64Parts = e.target.result.split(',');
+                imagenBase64IA = {
+                    mimeType: file.type || 'image/jpeg',
+                    data: base64Parts[1]
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function ejecutarImportacionIA() {
+            if (!imagenBase64IA) {
+                alert('Por favor, selecciona primero una fotografía o captura del horario.');
+                return;
+            }
+
+            const apiKeyInput = document.getElementById('input-api-key-gemini');
+            const apiKey = apiKeyInput.value.trim();
+
+            if (!apiKey) {
+                alert('Introduce una clave API de Gemini. Puedes conseguir una gratuita en 30 segundos pulsando en el enlace "Obtener clave gratis".');
+                apiKeyInput.focus();
+                return;
+            }
+
+            // Guardar clave API en localStorage para futuros usos
+            localStorage.setItem('GEMINI_API_KEY', apiKey);
+
+            // Mostrar estado de carga
+            const estadoCarga = document.getElementById('estado-carga-ia');
+            const btnEjecutar = document.getElementById('btn-ejecutar-ia');
+            estadoCarga.classList.remove('hidden');
+            btnEjecutar.disabled = true;
+
+            const promptSistema = `
+                Eres un asistente experto en digitalización de cuadrantes y calendarios de gimnasio y actividades dirigidas.
+                Analiza detenidamente la fotografía adjunta que contiene un horario/cuadrante semanal.
+                Extrae con precisión las franjas horarias (horaInicio y horaFin en formato 24h HH:MM) y las actividades que aparecen en cada día de la semana (lunes, martes, miercoles, jueves, viernes, sabado).
+                Si en una casilla aparece una sala o vaso (como S7, S3, S2, SC, PISC), inclúyela en el campo "sala".
+                
+                IMPORTANTE: Responde ÚNICAMENTE con un JSON válido y limpio, SIN texto introductorio, SIN explicaciones y SIN bloques de formato markdown.
+                Estructura exacta del JSON:
+                {
+                  "rango": "Texto de título o período que aparezca en el cartel (o 'Horario Importado IA')",
+                  "filas": [
+                    {
+                      "horaInicio": "09:00",
+                      "horaFin": "10:00",
+                      "dias": {
+                        "lunes": [{"actividad": "NOMBRE", "sala": "S7"}],
+                        "martes": [],
+                        "miercoles": [{"actividad": "OTRA ACTIVIDAD", "sala": ""}],
+                        "jueves": [],
+                        "viernes": [],
+                        "sabado": []
+                      }
+                    }
+                  ]
+                }
+            `;
+
+            try {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+                const requestBody = {
+                    contents: [
+                        {
+                            parts: [
+                                { text: promptSistema },
+                                {
+                                    inline_data: {
+                                        mime_type: imagenBase64IA.mimeType,
+                                        data: imagenBase64IA.data
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: 0.1,
+                        response_mime_type: "application/json"
+                    }
+                };
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error?.message || 'Error al conectar con la IA de Gemini');
+                }
+
+                const dataRes = await response.json();
+                const textoGenerado = dataRes.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!textoGenerado) {
+                    throw new Error('La IA no devolvió ningún contenido legible.');
+                }
+
+                // Limpiar posibles bloques markdown si los hubiese
+                const jsonLimpio = textoGenerado.replace(/```json/g, '').replace(/```/g, '').trim();
+                const objetoImportado = JSON.parse(jsonLimpio);
+
+                if (!objetoImportado.filas || !Array.isArray(objetoImportado.filas)) {
+                    throw new Error('El formato extraído no coincide con la estructura requerida.');
+                }
+
+                // Formatear e incorporar el nuevo calendario a appData
+                const nuevoCalendario = {
+                    id: 'sem_ia_' + Date.now(),
+                    rango: (objetoImportado.rango || 'Horario Importado con IA').toUpperCase(),
+                    filas: objetoImportado.filas.map((f, fIdx) => {
+                        const diasMapeados = {};
+                        DIAS.forEach(d => {
+                            const arr = (f.dias && Array.isArray(f.dias[d])) ? f.dias[d] : [];
+                            diasMapeados[d] = arr.map(act => ({
+                                actividad: (act.actividad || '').toUpperCase().trim(),
+                                sala: (act.sala || '').toUpperCase().trim(),
+                                monitores: [] // Las asignaciones de monitores quedan libres para asignarse luego
+                            }));
+                        });
+
+                        return {
+                            id: `fila_ia_${Date.now()}_${fIdx}`,
+                            horaInicio: f.horaInicio || '09:00',
+                            horaFin: f.horaFin || '10:00',
+                            dias: diasMapeados
+                        };
+                    })
+                };
+
+                // Añadir a las semanas existentes y activar
+                appData.semanas.push(nuevoCalendario);
+                appData.semanaActivaId = nuevoCalendario.id;
+
+                sincronizarCatalogosConEventos();
+                guardar();
+                cerrarModalIAImport();
+                render();
+
+                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias y todas sus actividades.`);
+
+            } catch (error) {
+                console.error("Error en importación IA:", error);
+                alert('No se pudo completar la importación con IA:\n\n' + error.message);
+            } finally {
+                estadoCarga.classList.add('hidden');
+                btnEjecutar.disabled = false;
+            }
         }
 
         // CONTROL DE BORRAR O VACIAR CALENDARIO
@@ -1576,7 +1839,6 @@
             });
 
             guardar();
-            // Renderiza manteniendo el scroll e iluminando la celda pulsada
             render(`celda_${fIndex}_${dia}`);
         }
 
@@ -1785,7 +2047,7 @@
             const contenedor = document.getElementById('contenedor-principal');
             if (!contenedor) return;
 
-            // MEMORIZAR POSICIÓN DE SCROLL PARA EVITAR CUALQUIER SALTO
+            // MEMORIZAR POSICIÓN DE SCROLL EXACTA
             const contenedorScrollPrevio = document.querySelector('.tabla-contenedor-scroll');
             const prevScrollTop = contenedorScrollPrevio ? contenedorScrollPrevio.scrollTop : 0;
             const prevScrollLeft = contenedorScrollPrevio ? contenedorScrollPrevio.scrollLeft : 0;
@@ -2518,6 +2780,28 @@
             render();
         }
 
+        function borrarSemanaActual() {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+
+            if (appData.semanas.length <= 1) {
+                if (confirm(`Es el único calendario existente. ¿Deseas vaciarlo por completo?`)) {
+                    semana.filas = [];
+                    guardar();
+                    render();
+                }
+                return;
+            }
+
+            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente el calendario:\n\n"${semana.rango}"?`)) {
+                const idx = appData.semanas.findIndex(s => s.id === semana.id);
+                appData.semanas.splice(idx, 1);
+                appData.semanaActivaId = appData.semanas.length > 0 ? appData.semanas[Math.max(0, idx - 1)].id : null;
+                guardar();
+                render();
+            }
+        }
+
         function seleccionarSemana(id) {
             appData.semanaActivaId = id;
             guardar();
@@ -2578,6 +2862,13 @@
                 tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
             },
             {
+                targetId: 'tour-ia-import',
+                icono: 'fa-wand-magic-sparkles',
+                titulo: 'Importación Inteligente con IA',
+                descripcion: 'Sube o arrastra una fotografía de cualquier cuadrante de actividades para que la Inteligencia Artificial cree un nuevo calendario estructurando las franjas horarias y actividades correspondientes.',
+                tip: 'Funciona con una clave API gratuita de Google Gemini que se guarda en tu propio navegador.'
+            },
+            {
                 targetId: 'btn-vista-completa',
                 icono: 'fa-compress',
                 titulo: 'Modo Vista Completa',
@@ -2588,7 +2879,7 @@
                 targetId: 'tour-nuevo',
                 icono: 'fa-calendar-plus',
                 titulo: 'Calendario en Blanco',
-                descripcion: 'Crea un nuevo calendario desde cero con todas las franjas horarias de 1 hora completas desde las 09:00 hasta las 23:00.',
+                descripcion: 'Crea un nuevo calendario desde cero con todas las franjas horarias de 1 hora completas comenzando a las 07:00 de la mañana hasta las 23:00 de la noche.',
                 tip: 'Ahorra tiempo generando automáticamente todo el esqueleto del día.'
             },
             {
