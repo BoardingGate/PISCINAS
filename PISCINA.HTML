@@ -27,6 +27,39 @@
             transition: all 0.3s ease !important;
         }
 
+        /* FIJACIÓN (STICKY) DE ENCABEZADOS DE DÍAS Y PIE DE TOTALES EN PANTALLA */
+        .tabla-contenedor-scroll {
+            max-height: calc(100vh - 165px);
+            overflow-y: auto;
+            overflow-x: auto;
+            position: relative;
+        }
+        .print-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 25;
+            background-color: #020617 !important; /* Slate 950 */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .print-table tfoot td {
+            position: sticky;
+            bottom: 0;
+            z-index: 25;
+            background-color: #cbd5e1 !important; /* Slate 300 */
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* MODO INSERCIÓN RÁPIDA: EFECTO VISUAL EN CELDAS */
+        .modo-rapido-activo-grid .celda-dia-drop {
+            cursor: pointer;
+            transition: background-color 0.15s ease, outline 0.15s ease;
+        }
+        .modo-rapido-activo-grid .celda-dia-drop:hover {
+            background-color: #fef08a !important; /* Amarillo suave indicador de clic */
+            outline: 2px dashed #b45309 !important;
+            outline-offset: -2px;
+        }
+
         /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA (PANTALLA) */
         .act-card.act-card-resaltado,
         .act-card.act-card-resaltado-actividad {
@@ -92,6 +125,15 @@
                 margin: 0 !important;
                 padding: 0 !important;
             }
+            .tabla-contenedor-scroll {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            .print-table thead th,
+            .print-table tfoot td {
+                position: static !important;
+                box-shadow: none !important;
+            }
             .print-table {
                 width: 100% !important;
                 min-width: 0 !important;
@@ -117,7 +159,6 @@
                 border: 1px solid #94a3b8 !important;
             }
 
-            /* SOMBREADO EN MODO IMPRESIÓN TANTO DE ACTIVIDAD COMO DE MONITOR */
             .act-card.act-card-resaltado,
             .act-card.act-card-resaltado-actividad {
                 border: 2px solid #92400e !important;
@@ -166,16 +207,10 @@
                 display: none !important;
             }
 
-            /* 1. TRAMO DE HORAS: EN NEGRITA PROFUNDA Y MÁS GRANDE */
             .celda-horario {
                 font-weight: 900 !important;
             }
-            .celda-horario input[type="time"],
-            .celda-horario input[type="time"]::-webkit-datetime-edit,
-            .celda-horario input[type="time"]::-webkit-datetime-edit-fields-wrapper,
-            .celda-horario input[type="time"]::-webkit-datetime-edit-text,
-            .celda-horario input[type="time"]::-webkit-datetime-edit-hour-field,
-            .celda-horario input[type="time"]::-webkit-datetime-edit-minute-field {
+            .celda-horario input[type="time"] {
                 font-size: 13px !important;
                 font-weight: 900 !important;
                 color: #000000 !important;
@@ -191,7 +226,6 @@
                 border: 1.5px solid #0e7490 !important;
             }
 
-            /* 2. CABECERA: TÍTULO, PERÍODO, OPERARIO Y ACTIVIDAD EN TAMAÑO DESTACADO */
             #cabecera-documento h1 {
                 font-size: 16px !important;
                 font-weight: 900 !important;
@@ -213,7 +247,6 @@
                 width: 420px !important;
             }
 
-            /* CORRECCIÓN: SOLO SE IMPRIMEN SI ESTÁN ACTIVAS (NO SI TIENEN LA CLASE HIDDEN) */
             #badge-filtro-monitor.hidden,
             #badge-filtro-actividad.hidden {
                 display: none !important;
@@ -231,34 +264,7 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            #badge-filtro-monitor i,
-            #badge-filtro-actividad i {
-                font-size: 16px !important;
-                color: #b45309 !important;
-            }
-            #badge-filtro-monitor .texto-filtro-label,
-            #badge-filtro-actividad .texto-filtro-label {
-                font-size: 16px !important;
-                font-weight: 900 !important;
-                color: #78350f !important;
-                text-transform: uppercase !important;
-            }
-            #badge-filtro-monitor strong,
-            #badge-filtro-actividad strong {
-                font-size: 18px !important;
-                font-weight: 900 !important;
-                color: #000000 !important;
-                text-transform: uppercase !important;
-                letter-spacing: 0.5px !important;
-            }
-            #badge-filtro-monitor .horas-filtro-total,
-            #badge-filtro-actividad .horas-filtro-total {
-                font-size: 16px !important;
-                font-weight: 900 !important;
-                color: #92400e !important;
-            }
 
-            /* 3. PIE DE TOTALES: NOMBRE DEL EMPLEADO Y HORAS MÁS GRANDES */
             tfoot tr {
                 background-color: #cbd5e1 !important;
                 border-top: 3px solid #334155 !important;
@@ -283,9 +289,9 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans p-2 md:p-4 min-h-screen">
+<body class="bg-slate-100 text-slate-800 font-sans p-2 md:p-3 min-h-screen">
 
-    <div class="max-w-[1600px] mx-auto space-y-2.5">
+    <div class="max-w-[1600px] mx-auto space-y-2">
 
         <!-- BARRA SUPERIOR DE CONTROL -->
         <header class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 justify-between items-center no-print">
@@ -336,8 +342,14 @@
                 <h1 class="text-sm md:text-base font-black text-cyan-950 flex items-center gap-1.5">
                     <i class="fa-solid fa-person-swimming text-cyan-600"></i> ACTIVIDADES DIRIGIDAS - CONTROL DE HORAS
                 </h1>
-                <p class="text-[10px] text-slate-500">Arrastra las actividades con el icono ⋮⋮ para resituarlas de día u hora. Haz clic en un monitor o actividad para resaltarla.</p>
+                <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir en masa rápidamente.</p>
             </div>
+
+            <!-- BOTÓN SOLICITADO: INSERTAR EVENTOS A UN CLIC -->
+            <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="no-print bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-2 text-xs transition-all transform hover:scale-105 active:scale-95">
+                <i class="fa-solid fa-bolt-lightning text-amber-900"></i>
+                <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
+            </button>
 
             <div class="flex flex-wrap items-center gap-2">
                 <!-- CHIP DE RESALTE ACTIVO DE EMPLEADO -->
@@ -351,7 +363,7 @@
                     </button>
                 </div>
 
-                <!-- CHIP DE RESALTE ACTIVO DE ACTIVIDAD (SE IMPRIME SI ESTÁ MARCADA) -->
+                <!-- CHIP DE RESALTE ACTIVO DE ACTIVIDAD -->
                 <div id="badge-filtro-actividad" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
                     <i class="fa-solid fa-bookmark text-amber-700 text-sm md:text-base"></i>
                     <span class="texto-filtro-label">Actividad:</span>
@@ -367,6 +379,89 @@
             <div id="tour-fechas" class="contenedor-periodo flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded-lg">
                 <label class="etiqueta-periodo text-[10px] font-bold text-slate-500 uppercase">Período:</label>
                 <input type="text" id="semana-rango" onchange="actualizarRangoTexto(this.value)" class="input-periodo font-bold text-xs bg-transparent outline-none text-slate-800 w-64">
+            </div>
+        </div>
+
+        <!-- PANEL DE INSERCIÓN RÁPIDA A UN CLIC (NO TAPA EL CALENDARIO) -->
+        <div id="panel-modo-rapido" class="hidden no-print bg-slate-900 border-2 border-amber-400 text-white p-3 rounded-2xl shadow-xl space-y-2.5 transition-all">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-md font-black text-xs uppercase flex items-center gap-1">
+                        <i class="fa-solid fa-bolt-lightning"></i> Modo Rápido Activo
+                    </span>
+                    <span class="text-xs text-amber-200 font-medium">
+                        Selecciona elementos abajo y haz clic en cualquier cuadrícula para agregarlos directamente.
+                    </span>
+                </div>
+                <button onclick="toggleModoRapido(false)" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-1 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+                    <i class="fa-solid fa-circle-check"></i> FINALIZAR
+                </button>
+            </div>
+
+            <!-- GUÍA / AYUDA RÁPIDA -->
+            <div class="bg-slate-800/80 border border-slate-700 p-2 rounded-xl text-[11px] text-slate-300 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-cyan-400 text-sm"></i>
+                    <span>
+                        <b>Pasos:</b> <b>1)</b> Marca una o varias <i>Actividades</i>. <b>2)</b> Marca uno o varios <i>Monitores</i>. <b>3)</b> Marca una <i>Sala</i>. <b>4)</b> Haz clic sobre las casillas del calendario donde quieras colocarlas. ¡No se cerrará hasta pulsar <b>Finalizar</b>!
+                    </span>
+                </div>
+                <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs truncate">
+                    Seleccionado: Ninguno
+                </div>
+            </div>
+
+            <!-- LAS 3 COLUMNAS: ACTIVIDADES, MONITORES Y SALAS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                
+                <!-- COLUMNA 1: ACTIVIDADES -->
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-col justify-between space-y-2">
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5 border-b border-slate-700 pb-1">
+                            <span class="font-extrabold uppercase text-cyan-400 tracking-wide flex items-center gap-1">
+                                <i class="fa-solid fa-dumbbell"></i> 1. Actividades (Una o varias)
+                            </span>
+                            <span class="text-[10px] text-slate-400">Multiselección</span>
+                        </div>
+                        <div id="contenedor-pills-actividades" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1"></div>
+                    </div>
+                    <button onclick="promptCrearActividadRapida()" class="w-full mt-1 border border-dashed border-cyan-500 hover:bg-cyan-950/60 text-cyan-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition">
+                        <i class="fa-solid fa-plus"></i> Añadir Actividad
+                    </button>
+                </div>
+
+                <!-- COLUMNA 2: MONITORES -->
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-col justify-between space-y-2">
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5 border-b border-slate-700 pb-1">
+                            <span class="font-extrabold uppercase text-emerald-400 tracking-wide flex items-center gap-1">
+                                <i class="fa-solid fa-users"></i> 2. Monitores (Uno o varios)
+                            </span>
+                            <span class="text-[10px] text-slate-400">Multiselección</span>
+                        </div>
+                        <div id="contenedor-pills-monitores" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1"></div>
+                    </div>
+                    <button onclick="promptCrearMonitorRapido()" class="w-full mt-1 border border-dashed border-emerald-500 hover:bg-emerald-950/60 text-emerald-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition">
+                        <i class="fa-solid fa-plus"></i> Añadir Monitor
+                    </button>
+                </div>
+
+                <!-- COLUMNA 3: SALAS -->
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-col justify-between space-y-2">
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5 border-b border-slate-700 pb-1">
+                            <span class="font-extrabold uppercase text-amber-400 tracking-wide flex items-center gap-1">
+                                <i class="fa-solid fa-door-open"></i> 3. Sala (Selecciona una)
+                            </span>
+                            <span class="text-[10px] text-slate-400">1 sola sala</span>
+                        </div>
+                        <div id="contenedor-pills-salas" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1"></div>
+                    </div>
+                    <button onclick="promptCrearSalaRapida()" class="w-full mt-1 border border-dashed border-amber-500 hover:bg-amber-950/60 text-amber-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition">
+                        <i class="fa-solid fa-plus"></i> Añadir Sala
+                    </button>
+                </div>
+
             </div>
         </div>
 
@@ -424,7 +519,7 @@
                         <i class="fa-solid fa-download text-cyan-700"></i> Guardar Copia en Escritorio
                     </h4>
                     <p class="text-[11px] text-slate-500">
-                        Descarga el archivo <strong>backup_piscina.json</strong>. Al guardarlo en el mismo sitio reemplaza la versión anterior sin duplicar archivos.
+                        Descarga el archivo <strong>backup_piscina.json</strong>.
                     </p>
                     <button onclick="exportarBackupManual()" class="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-file-export"></i> Descargar backup_piscina.json
@@ -436,7 +531,7 @@
                         <i class="fa-solid fa-upload text-indigo-700"></i> Restaurar / Cambiar de Equipo
                     </h4>
                     <p class="text-[11px] text-slate-500">
-                        Carga el archivo <strong>backup_piscina.json</strong> para recuperar tus datos o trasladarlos a otro ordenador.
+                        Carga el archivo <strong>backup_piscina.json</strong> para recuperar tus datos.
                     </p>
                     <label class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                         <i class="fa-solid fa-folder-open"></i> Seleccionar backup_piscina.json...
@@ -449,9 +544,6 @@
                         <input type="checkbox" id="check-autobackup" checked onchange="toggleAutoBackup(this.checked)" class="w-4 h-4 accent-amber-600 rounded">
                         <span class="text-xs font-bold text-slate-800">Descargar copia automática al entrar</span>
                     </label>
-                    <p class="text-[10px] text-slate-500 ml-6">
-                        Descarga automáticamente <strong>backup_piscina.json</strong> una vez al día al abrir la aplicación.
-                    </p>
                 </div>
             </div>
 
@@ -493,7 +585,7 @@
         </div>
     </div>
 
-    <!-- MODAL ASIGNAR MONITORES -->
+    <!-- MODAL ASIGNAR MONITORES INDIVIDUAL -->
     <div id="modal-asignar-monitores" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 space-y-3">
             <div class="flex justify-between items-center border-b pb-2">
@@ -514,9 +606,6 @@
                     <input type="text" id="input-asignar-monitores" 
                         placeholder="Ej: 1, 3  ó  Julia, Diego" 
                         class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
-                    <p class="text-[10px] text-slate-400 mt-1">
-                        * Puedes escribir el número (1, 2) o su nombre. Si escribes uno que no existe, se creará solo.
-                    </p>
                 </div>
 
                 <div>
@@ -594,14 +683,28 @@
 
         let appData = {
             monitores: ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'],
+            actividadesCatalogo: [
+                'BODY PUMP', 'PILATES', 'CICLO INDOOR', 'ZUMBA', "30' CORE", 
+                "30' CROSS TRAINING", "30'GAP", 'MAYORES EN FORMA', 'STEP', 
+                'BALANCE', 'BODY COMBAT', "45' ESTIRAMIENTOS"
+            ],
+            salasCatalogo: ['S7', 'S3', 'S2', 'SC', 'S1', 'PISC'],
             semanaActivaId: null,
             semanas: [],
             config: { autoBackup: true }
         };
 
+        // ESTADO DE INSERCIÓN RÁPIDA A UN CLIC
+        let modoRapidoActivo = false;
+        let seleccionRapida = {
+            actividades: [],
+            monitores: [],
+            sala: ''
+        };
+
         let contextoAsignacion = null;
         let monitorResaltado = null;    // MONITOR ACTUALMENTE RESALTADO
-        let actividadResaltada = null;  // ACTIVIDAD ACTUALMENTE RESALTADA (PERMANECE AL IMPRIMIR)
+        let actividadResaltada = null;  // ACTIVIDAD ACTUALMENTE RESALTADA
         let draggedActivity = null;     // OBJETO ARRASTRADO (DRAG & DROP)
 
         function calcularDuracionHoras(inicio, fin) {
@@ -616,6 +719,16 @@
             if (!data || typeof data !== 'object') data = {};
             if (!Array.isArray(data.monitores) || data.monitores.length === 0) {
                 data.monitores = ['Julia', 'Diego', 'Fran', 'Alberto', 'Álvaro', 'Jacobo'];
+            }
+            if (!Array.isArray(data.actividadesCatalogo) || data.actividadesCatalogo.length === 0) {
+                data.actividadesCatalogo = [
+                    'BODY PUMP', 'PILATES', 'CICLO INDOOR', 'ZUMBA', "30' CORE", 
+                    "30' CROSS TRAINING", "30'GAP", 'MAYORES EN FORMA', 'STEP', 
+                    'BALANCE', 'BODY COMBAT', "45' ESTIRAMIENTOS"
+                ];
+            }
+            if (!Array.isArray(data.salasCatalogo) || data.salasCatalogo.length === 0) {
+                data.salasCatalogo = ['S7', 'S3', 'S2', 'SC', 'S1', 'PISC'];
             }
             if (!Array.isArray(data.semanas)) {
                 data.semanas = [];
@@ -672,10 +785,36 @@
                 cargarPlantillaOficialDesdeImagen();
             }
 
+            // Sincronizar catálogo con actividades y salas existentes en los eventos
+            sincronizarCatalogosConEventos();
+
             guardar();
             render();
             configurarEventos();
             verificarAutoBackupAlEntrar();
+        }
+
+        function sincronizarCatalogosConEventos() {
+            appData.semanas.forEach(s => {
+                (s.filas || []).forEach(f => {
+                    DIAS.forEach(d => {
+                        (f.dias[d] || []).forEach(act => {
+                            if (act.actividad && act.actividad.trim()) {
+                                const actNombre = act.actividad.trim().toUpperCase();
+                                if (!appData.actividadesCatalogo.includes(actNombre)) {
+                                    appData.actividadesCatalogo.push(actNombre);
+                                }
+                            }
+                            if (act.sala && act.sala.trim()) {
+                                const salaNombre = act.sala.trim().toUpperCase();
+                                if (!appData.salasCatalogo.includes(salaNombre)) {
+                                    appData.salasCatalogo.push(salaNombre);
+                                }
+                            }
+                        });
+                    });
+                });
+            });
         }
 
         function guardar() {
@@ -960,7 +1099,190 @@
             event.target.value = '';
         }
 
-        // CONTROL DEL RESALTE DE EMPLEADO
+        // ==========================================================
+        // --- CONTROL DEL MODO INSERCIÓN RÁPIDA A UN CLIC ---
+        // ==========================================================
+        function toggleModoRapido(forzarEstado = null) {
+            if (forzarEstado !== null) {
+                modoRapidoActivo = forzarEstado;
+            } else {
+                modoRapidoActivo = !modoRapidoActivo;
+            }
+
+            const panel = document.getElementById('panel-modo-rapido');
+            const btn = document.getElementById('btn-toggle-modo-rapido');
+            const txtBtn = document.getElementById('txt-btn-rapido');
+
+            if (modoRapidoActivo) {
+                panel.classList.remove('hidden');
+                btn.classList.add('bg-red-600', 'border-red-700', 'text-white');
+                btn.classList.remove('bg-amber-500', 'border-amber-600', 'text-slate-950');
+                txtBtn.textContent = 'FINALIZAR MODO RÁPIDO';
+                renderPanelModoRapido();
+            } else {
+                panel.classList.add('hidden');
+                btn.classList.remove('bg-red-600', 'border-red-700', 'text-white');
+                btn.classList.add('bg-amber-500', 'border-amber-600', 'text-slate-950');
+                txtBtn.textContent = 'INSERTAR EVENTOS A UN CLIC';
+            }
+
+            render();
+        }
+
+        function renderPanelModoRapido() {
+            // 1. Renderizar Actividades
+            const contAct = document.getElementById('contenedor-pills-actividades');
+            contAct.innerHTML = appData.actividadesCatalogo.map(act => {
+                const seleccionada = seleccionRapida.actividades.includes(act);
+                return `
+                    <button type="button" onclick="toggleSeleccionRapida('actividades', '${act}')" 
+                        class="px-2 py-1 rounded text-[10.5px] font-black transition border ${seleccionada ? 'bg-cyan-400 text-slate-950 border-cyan-300 ring-2 ring-cyan-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-cyan-400'}">
+                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${act}
+                    </button>
+                `;
+            }).join('');
+
+            // 2. Renderizar Monitores
+            const contMon = document.getElementById('contenedor-pills-monitores');
+            contMon.innerHTML = appData.monitores.map(mon => {
+                const seleccionado = seleccionRapida.monitores.includes(mon);
+                const colMon = obtenerColorTextoMonitor(mon);
+                return `
+                    <button type="button" onclick="toggleSeleccionRapida('monitores', '${mon}')" 
+                        class="px-2 py-1 rounded text-[10.5px] font-black transition border flex items-center gap-1 ${seleccionado ? 'bg-emerald-400 text-slate-950 border-emerald-300 ring-2 ring-emerald-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-emerald-400'}">
+                        ${seleccionado ? '<i class="fa-solid fa-check"></i>' : ''} 
+                        <span style="color: ${seleccionado ? '#022c22' : colMon};">${mon}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // 3. Renderizar Salas
+            const contSal = document.getElementById('contenedor-pills-salas');
+            contSal.innerHTML = appData.salasCatalogo.map(sala => {
+                const seleccionada = (seleccionRapida.sala === sala);
+                return `
+                    <button type="button" onclick="toggleSeleccionRapida('sala', '${sala}')" 
+                        class="px-2.5 py-1 rounded text-[10.5px] font-black transition border ${seleccionada ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-amber-400'}">
+                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${sala}
+                    </button>
+                `;
+            }).join('');
+
+            // 4. Actualizar Resumen de Selección
+            const res = document.getElementById('resumen-seleccion-rapida');
+            const strAct = seleccionRapida.actividades.length ? seleccionRapida.actividades.join(' + ') : '<span class="text-slate-400">Sin actividad</span>';
+            const strMon = seleccionRapida.monitores.length ? seleccionRapida.monitores.join(', ') : '<span class="text-slate-400">Sin monitor</span>';
+            const strSal = seleccionRapida.sala ? `[${seleccionRapida.sala}]` : '<span class="text-slate-400">[Sin sala]</span>';
+
+            res.innerHTML = `Listo para insertar: <b>${strAct}</b> con <b>${strMon}</b> en <b>${strSal}</b>`;
+        }
+
+        function toggleSeleccionRapida(tipo, valor) {
+            if (tipo === 'actividades') {
+                const idx = seleccionRapida.actividades.indexOf(valor);
+                if (idx >= 0) {
+                    seleccionRapida.actividades.splice(idx, 1);
+                } else {
+                    seleccionRapida.actividades.push(valor);
+                }
+            } else if (tipo === 'monitores') {
+                const idx = seleccionRapida.monitores.indexOf(valor);
+                if (idx >= 0) {
+                    seleccionRapida.monitores.splice(idx, 1);
+                } else {
+                    seleccionRapida.monitores.push(valor);
+                }
+            } else if (tipo === 'sala') {
+                if (seleccionRapida.sala === valor) {
+                    seleccionRapida.sala = '';
+                } else {
+                    seleccionRapida.sala = valor;
+                }
+            }
+            renderPanelModoRapido();
+        }
+
+        function promptCrearActividadRapida() {
+            const n = prompt('Introduce el nombre de la nueva actividad:');
+            if (n && n.trim()) {
+                const clean = n.trim().toUpperCase();
+                if (!appData.actividadesCatalogo.includes(clean)) {
+                    appData.actividadesCatalogo.push(clean);
+                }
+                if (!seleccionRapida.actividades.includes(clean)) {
+                    seleccionRapida.actividades.push(clean);
+                }
+                guardar();
+                renderPanelModoRapido();
+            }
+        }
+
+        function promptCrearMonitorRapido() {
+            const n = prompt('Introduce el nombre del nuevo monitor:');
+            if (n && n.trim()) {
+                const clean = n.trim();
+                const normal = clean.charAt(0).toUpperCase() + clean.slice(1);
+                if (!appData.monitores.includes(normal)) {
+                    appData.monitores.push(normal);
+                }
+                if (!seleccionRapida.monitores.includes(normal)) {
+                    seleccionRapida.monitores.push(normal);
+                }
+                guardar();
+                renderPanelModoRapido();
+                render();
+            }
+        }
+
+        function promptCrearSalaRapida() {
+            const n = prompt('Introduce el código o nombre de la sala (Ej: S4, PISC):');
+            if (n && n.trim()) {
+                const clean = n.trim().toUpperCase();
+                if (!appData.salasCatalogo.includes(clean)) {
+                    appData.salasCatalogo.push(clean);
+                }
+                seleccionRapida.sala = clean;
+                guardar();
+                renderPanelModoRapido();
+            }
+        }
+
+        function ejecutarInsercionRapidaEnCelda(fIndex, dia) {
+            if (!modoRapidoActivo) return;
+
+            if (seleccionRapida.actividades.length === 0) {
+                alert('Por favor selecciona al menos una Actividad en el panel superior antes de hacer clic en la casilla.');
+                return;
+            }
+
+            const semana = obtenerSemanaActiva();
+            if (!semana || !semana.filas[fIndex]) return;
+
+            if (!semana.filas[fIndex].dias[dia]) {
+                semana.filas[fIndex].dias[dia] = [];
+            }
+
+            // Añadir cada una de las actividades seleccionadas con los monitores y sala elegidos
+            seleccionRapida.actividades.forEach(actNombre => {
+                const monitoresConfigurados = seleccionRapida.monitores.map(mon => ({
+                    monitor: mon,
+                    asiste: true
+                }));
+
+                semana.filas[fIndex].dias[dia].push({
+                    actividad: actNombre,
+                    sala: seleccionRapida.sala || '',
+                    monitores: monitoresConfigurados
+                });
+            });
+
+            guardar();
+            render();
+        }
+
+        // ==========================================================
+        // --- CONTROL DEL RESALTE DE EMPLEADO Y ACTIVIDAD ---
+        // ==========================================================
         function toggleResaltarMonitor(nombre) {
             if (monitorResaltado === nombre || !nombre) {
                 monitorResaltado = null;
@@ -970,7 +1292,6 @@
             render();
         }
 
-        // CONTROL DEL RESALTE Y SOMBREADO PERMANENTE DE ACTIVIDAD (PARA PANTALLA E IMPRESIÓN)
         function manejarFocoActividad(inputElem) {
             if (!inputElem) return;
             const val = inputElem.value.trim().toUpperCase();
@@ -1041,7 +1362,10 @@
         // --- FUNCIONES DE ARRASTRAR Y SOLTAR (DRAG & DROP) ---
         // ==========================================================
         function manejarDragStart(e, fIndex, dia, actIndex) {
-            // Si el usuario intentó seleccionar texto dentro del input o pulsar un botón, no arrastramos
+            if (modoRapidoActivo) {
+                e.preventDefault();
+                return false;
+            }
             if (['INPUT', 'BUTTON', 'LABEL', 'SELECT'].includes(e.target.tagName) || e.target.closest('input') || e.target.closest('button')) {
                 e.preventDefault();
                 return false;
@@ -1051,7 +1375,6 @@
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', JSON.stringify(draggedActivity));
 
-            // Indicador semitransparente mientras se desplaza
             setTimeout(() => {
                 const elem = e.currentTarget || e.target;
                 if (elem && elem.classList) {
@@ -1067,6 +1390,7 @@
         }
 
         function manejarDragOver(e) {
+            if (modoRapidoActivo) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
             const td = e.currentTarget;
@@ -1076,6 +1400,7 @@
         }
 
         function manejarDragLeave(e) {
+            if (modoRapidoActivo) return;
             const td = e.currentTarget;
             if (e.relatedTarget && !td.contains(e.relatedTarget)) {
                 td.classList.remove('celda-drop-activa');
@@ -1083,6 +1408,7 @@
         }
 
         function manejarDrop(e, destFIndex, destDia, targetActIndex = null) {
+            if (modoRapidoActivo) return;
             e.preventDefault();
             e.stopPropagation();
             document.querySelectorAll('.celda-dia-drop').forEach(td => td.classList.remove('celda-drop-activa'));
@@ -1097,7 +1423,6 @@
 
             const { fIndex: origFIndex, dia: origDia, actIndex: origActIndex } = data;
 
-            // Si es exactamente la misma posición, no hacemos cambios
             if (origFIndex === destFIndex && origDia === destDia && (targetActIndex === null || targetActIndex === origActIndex)) {
                 return;
             }
@@ -1108,10 +1433,8 @@
             const listaOrigen = semana.filas[origFIndex]?.dias[origDia];
             if (!listaOrigen || !listaOrigen[origActIndex]) return;
 
-            // 1. Extraer la actividad del origen
             const [actividadMovida] = listaOrigen.splice(origActIndex, 1);
 
-            // 2. Insertar en destino
             if (!semana.filas[destFIndex].dias[destDia]) {
                 semana.filas[destFIndex].dias[destDia] = [];
             }
@@ -1128,6 +1451,9 @@
             render();
         }
 
+        // ==========================================================
+        // --- RENDERIZADO PRINCIPAL DEL CUADRANTE ---
+        // ==========================================================
         function render() {
             const contenedor = document.getElementById('contenedor-principal');
             if (!contenedor) return;
@@ -1151,7 +1477,6 @@
                 const inpRango = document.getElementById('semana-rango');
                 if (inpRango) inpRango.value = semana.rango || '';
 
-                // CÁLCULO DE HORAS DEL MONITOR RESALTADO PARA MOSTRAR EN CABECERA
                 let totalHorasMonitor = 0;
                 if (monitorResaltado) {
                     let minutosTotal = 0;
@@ -1170,7 +1495,6 @@
                     totalHorasMonitor = (minutosTotal / 60).toFixed(2);
                 }
 
-                // GESTIÓN DEL CHIP DE RESALTE ACTIVO DE EMPLEADO
                 const badgeFiltroMonitor = document.getElementById('badge-filtro-monitor');
                 const spanFiltroMonitor = document.getElementById('nombre-monitor-filtrado');
                 const horasFiltroMonitor = document.getElementById('horas-monitor-filtrado');
@@ -1184,7 +1508,6 @@
                     }
                 }
 
-                // GESTIÓN DEL CHIP DE ACTIVIDAD RESALTADA
                 const badgeFiltroActividad = document.getElementById('badge-filtro-actividad');
                 const spanFiltroActividad = document.getElementById('nombre-actividad-filtrada');
                 const conteoFiltroActividad = document.getElementById('conteo-actividad-filtrada');
@@ -1209,16 +1532,17 @@
                 }
 
                 const claseModoResalte = (monitorResaltado || actividadResaltada) ? 'modo-resalte-activo' : '';
+                const claseModoRapidoGrid = modoRapidoActivo ? 'modo-rapido-activo-grid' : '';
 
                 let htmlTabla = `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-300 overflow-x-auto ${claseModoResalte}">
+                    <div class="tabla-contenedor-scroll bg-white rounded-xl shadow-sm border border-slate-300 ${claseModoResalte} ${claseModoRapidoGrid}">
                         <table class="w-full border-collapse print-table text-left min-w-[1180px] table-fixed">
                             <thead>
-                                <tr class="bg-slate-900 text-white text-[10.5px] uppercase">
-                                    <th class="p-1 border border-slate-700 w-16 no-print text-center text-[9px] font-bold text-slate-300 bg-slate-950">
+                                <tr class="bg-slate-950 text-white text-[10.5px] uppercase">
+                                    <th class="p-1 border border-slate-700 w-16 no-print text-center text-[9px] font-bold text-slate-300">
                                         Fila
                                     </th>
-                                    <th class="p-1 border border-slate-700 w-36 text-center align-middle bg-slate-950">
+                                    <th class="p-1 border border-slate-700 w-36 text-center align-middle">
                                         <div class="flex flex-col items-center gap-0.5">
                                             <span class="font-bold tracking-wider text-[9.5px]">Horario</span>
                                             <button onclick="agregarFila()" class="no-print bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-0.5 px-1.5 rounded shadow-2xs text-[9.5px] flex items-center justify-center gap-1 transition w-full">
@@ -1270,7 +1594,6 @@
                             </td>
                         `;
 
-                        // COLUMNA DE HORARIOS
                         let tdHorario = `
                             <td class="celda-horario p-1 border border-slate-300 text-center align-top font-sans" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
                                 <div class="flex flex-col items-center space-y-0.5">
@@ -1294,15 +1617,12 @@
                             const actsHtml = actividades.map((act, actIndex) => {
                                 const tieneMonitores = act.monitores && act.monitores.length > 0;
                                 const esUltimaActividad = actIndex === actividades.length - 1;
-
                                 const colorLetra = obtenerColorTextoActividad(act.actividad);
 
-                                // COMPROBAR SI CONTIENE AL MONITOR RESALTADO
                                 const tieneMonitorResaltado = monitorResaltado && (act.monitores || []).some(m => 
                                     m.monitor.toLowerCase() === monitorResaltado.toLowerCase() && m.asiste
                                 );
 
-                                // COMPROBAR SI COINCIDE CON LA ACTIVIDAD RESALTADA
                                 const esActividadMarcada = actividadResaltada && act.actividad && (
                                     act.actividad.trim().toUpperCase() === actividadResaltada ||
                                     (actividadResaltada.length >= 3 && act.actividad.trim().toUpperCase().startsWith(actividadResaltada))
@@ -1321,7 +1641,7 @@
                                                     ${m.monitor}
                                                 </span>
                                             </label>
-                                            <button onclick="quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px]">
+                                            <button onclick="event.stopPropagation(); quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px]">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         </div>
@@ -1333,7 +1653,7 @@
                                     bloqueMonitores = `
                                         <div class="flex flex-wrap items-center gap-1 pt-0.5">
                                             ${monitoresItemsHtml}
-                                            <button onclick="abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" title="Añadir otro monitor" 
+                                            <button onclick="event.stopPropagation(); abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" title="Añadir otro monitor" 
                                                 class="border border-dashed border-cyan-400 text-cyan-700 hover:bg-cyan-100 rounded px-1.5 py-0.5 text-[8.5px] font-bold no-print flex items-center gap-0.5 transition shrink-0">
                                                 <i class="fa-solid fa-user-plus text-[8px]"></i>
                                             </button>
@@ -1341,7 +1661,7 @@
                                     `;
                                 } else {
                                     bloqueMonitores = `
-                                        <button onclick="abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" class="w-full mt-0.5 border border-dashed border-slate-300 text-slate-400 hover:text-cyan-800 hover:border-cyan-500 rounded py-0.5 text-[8.5px] flex items-center justify-center gap-0.5 no-print">
+                                        <button onclick="event.stopPropagation(); abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" class="w-full mt-0.5 border border-dashed border-slate-300 text-slate-400 hover:text-cyan-800 hover:border-cyan-500 rounded py-0.5 text-[8.5px] flex items-center justify-center gap-0.5 no-print">
                                             <i class="fa-solid fa-plus"></i> Monitor
                                         </button>
                                     `;
@@ -1353,20 +1673,19 @@
                                 return `
                                     <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5 transition-all ${claseResaltado}" 
                                         ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}
-                                        draggable="true"
+                                        draggable="${!modoRapidoActivo}"
                                         ondragstart="manejarDragStart(event, ${fIndex}, '${dia}', ${actIndex})"
                                         ondragend="manejarDragEnd(event)"
                                         ondrop="manejarDrop(event, ${fIndex}, '${dia}', ${actIndex})">
                                         
                                         <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
-                                            <!-- ASIDERO DE ARRASTRE PARA RESITUAR ACTIVIDAD -->
                                             <span class="cursor-grab active:cursor-grabbing text-slate-400 hover:text-cyan-700 no-print mr-0.5 shrink-0 select-none" 
                                                   title="Pincha y arrastra para mover a otro día u hora">
                                                 <i class="fa-solid fa-grip-vertical text-[10px]"></i>
                                             </span>
 
-                                            <!-- INPUT CON DETECCIÓN PERMANENTE QUE SE MANTIENE AL IMPRIMIR -->
                                             <input type="text" value="${act.actividad || ''}" placeholder="Actividad..." 
+                                                onclick="event.stopPropagation()"
                                                 onfocus="manejarFocoActividad(this)"
                                                 oninput="manejarInputActividad(this)"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'actividad', this.value)" 
@@ -1379,16 +1698,17 @@
                                                 </span>
                                             ` : ''}
 
-                                            <input type="text" value="${act.sala || ''}" placeholder="Sal" maxlength="3"
+                                            <input type="text" value="${act.sala || ''}" placeholder="Sal" maxlength="4"
+                                                onclick="event.stopPropagation()"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'sala', this.value)" 
-                                                class="w-7 text-[9px] text-slate-700 uppercase font-bold text-center placeholder-slate-300 outline-none border border-slate-400/60 rounded px-0.5 shrink-0 bg-white/40" title="Sala / Vaso (ej: S7, S3, S2, SC)">
+                                                class="w-8 text-[9px] text-slate-700 uppercase font-bold text-center placeholder-slate-300 outline-none border border-slate-400/60 rounded px-0.5 shrink-0 bg-white/40" title="Sala / Vaso">
                                             
-                                            <button onclick="eliminarActividad(${fIndex}, '${dia}', ${actIndex})" title="Eliminar actividad" class="text-slate-300 hover:text-red-600 no-print text-[9px] ml-0.5 shrink-0">
+                                            <button onclick="event.stopPropagation(); eliminarActividad(${fIndex}, '${dia}', ${actIndex})" title="Eliminar actividad" class="text-slate-300 hover:text-red-600 no-print text-[9px] ml-0.5 shrink-0">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
 
                                             ${esUltimaActividad ? `
-                                                <button onclick="agregarActividad(${fIndex}, '${dia}')" title="Añadir otra actividad simultánea" 
+                                                <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" title="Añadir otra actividad simultánea" 
                                                     class="text-emerald-600 hover:text-emerald-800 no-print text-[11px] ml-0.5 shrink-0 transition" style="line-height: 1;">
                                                     <i class="fa-solid fa-circle-plus"></i>
                                                 </button>
@@ -1400,14 +1720,19 @@
                                 `;
                             }).join('');
 
+                            const clickCeldaHandler = modoRapidoActivo ? `onclick="ejecutarInsercionRapidaEnCelda(${fIndex}, '${dia}')"` : '';
+                            const tooltipCelda = modoRapidoActivo ? 'title="Haz clic aquí para añadir la selección rápida a este tramo"' : '';
+
                             return `
                                 <td class="celda-dia-drop p-1 border border-slate-300 align-top transition-all"
+                                    ${clickCeldaHandler}
+                                    ${tooltipCelda}
                                     ondragover="manejarDragOver(event)"
                                     ondragleave="manejarDragLeave(event)"
                                     ondrop="manejarDrop(event, ${fIndex}, '${dia}')">
                                     <div>${actsHtml}</div>
                                     ${actividades.length === 0 ? `
-                                        <button onclick="agregarActividad(${fIndex}, '${dia}')" class="w-full border border-dashed border-cyan-400 bg-white hover:bg-cyan-50 text-cyan-800 rounded py-0.5 text-[9px] font-semibold flex items-center justify-center gap-0.5 transition no-print shadow-2xs">
+                                        <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" class="w-full border border-dashed border-cyan-400 bg-white hover:bg-cyan-50 text-cyan-800 rounded py-0.5 text-[9px] font-semibold flex items-center justify-center gap-0.5 transition no-print shadow-2xs">
                                             <i class="fa-solid fa-plus"></i> Actividad
                                         </button>
                                     ` : ''}
@@ -1444,7 +1769,7 @@
             }
         }
 
-        // CÁLCULO DE TOTALES (CON INTERACCIÓN DE CLIC PARA RESALTAR)
+        // CÁLCULO DE TOTALES
         function calcularTotales() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
@@ -1494,7 +1819,7 @@
             }).join('');
         }
 
-        // ACCIONES DE FILAS
+        // GESTIÓN DE FILAS Y EVENTOS
         function agregarFila() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
@@ -1603,7 +1928,14 @@
                 guardar();
                 if (campo === 'actividad') {
                     actividadResaltada = valor.trim().toUpperCase() || null;
+                    if (valor.trim() && !appData.actividadesCatalogo.includes(valor.trim().toUpperCase())) {
+                        appData.actividadesCatalogo.push(valor.trim().toUpperCase());
+                    }
                     render();
+                } else if (campo === 'sala') {
+                    if (valor.trim() && !appData.salasCatalogo.includes(valor.trim().toUpperCase())) {
+                        appData.salasCatalogo.push(valor.trim().toUpperCase());
+                    }
                 }
             }
         }
@@ -1866,10 +2198,11 @@
                 });
             }
 
-            // Tecla Escape para limpiar resaltes activos
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (actividadResaltada) {
+                    if (modoRapidoActivo) {
+                        toggleModoRapido(false);
+                    } else if (actividadResaltada) {
                         desmarcarActividad();
                     } else if (monitorResaltado) {
                         toggleResaltarMonitor(null);
@@ -1883,6 +2216,13 @@
 
         const pasosTour = [
             {
+                targetId: 'btn-toggle-modo-rapido',
+                icono: 'fa-bolt-lightning',
+                titulo: 'Insertar Eventos a un Clic',
+                descripcion: '¡Nueva herramienta ultra rápida! Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante.',
+                tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
+            },
+            {
                 targetId: 'tour-semanas',
                 icono: 'fa-calendar-days',
                 titulo: 'Gestión y Cambio de Semanas',
@@ -1894,7 +2234,7 @@
                 icono: 'fa-clone',
                 titulo: 'Clonar Semana Completa',
                 descripcion: 'Crea una nueva semana copiando íntegramente todos los horarios, actividades y monitores asignados en la semana actual.',
-                tip: 'Al clonar, todas las casillas de asistencia se activan de nuevo por defecto para la nueva semana.'
+                tip: 'Al clonar, todas las casillas de asistencia se activan de nuevo por defecto.'
             },
             {
                 targetId: 'tour-monitores',
@@ -1904,46 +2244,39 @@
                 tip: 'También puedes dar de alta un monitor directamente al escribir su nombre en cualquier clase.'
             },
             {
-                targetId: 'tour-backup',
-                icono: 'fa-shield-halved',
-                titulo: 'Copias de Seguridad',
-                descripcion: 'Descarga el archivo <strong>backup_piscina.json</strong> para salvaguardar todos los calendarios o trasladarlos a otro ordenador. Al guardarlo en el mismo sitio siempre se sobreescribe el anterior.',
-                tip: 'Viene configurado para realizar una copia automática diaria al entrar a la aplicación.'
-            },
-            {
                 targetId: 'tour-imprimir',
                 icono: 'fa-print',
                 titulo: 'Imprimir o Guardar en PDF',
-                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has marcado un monitor o una actividad, ¡sus casillas saldrán sombreadas en amarillo y destacadas en papel exactamente como en pantalla!',
-                tip: 'Elige la opción "Guardar como PDF" en tu navegador para generar copias digitales personalizadas.'
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. Las cabeceras de días y los totales se adaptan con la máxima claridad.',
+                tip: 'Elige la opción "Guardar como PDF" en tu navegador para generar copias digitales.'
             },
             {
                 targetId: 'tour-control-fila',
                 icono: 'fa-arrows-up-down',
                 titulo: 'Gestión de Filas y Reestructuración',
-                descripcion: 'El botón verde <strong>(+)</strong> intercala una nueva franja horaria inmediatamente debajo. Las flechas <strong>(▲ / ▼)</strong> permiten subir o bajar franjas enteras de sitio sin tener que retocar las demás.',
+                descripcion: 'El botón verde <strong>(+)</strong> intercala una nueva franja horaria inmediatamente debajo. Las flechas permiten subir o bajar franjas enteras de sitio.',
                 tip: 'La franja recién intercalada adopta como hora de inicio el fin de la anterior automáticamente.'
             },
             {
                 targetId: 'tour-horario-slot',
                 icono: 'fa-clock',
                 titulo: 'Horarios y Cómputo de Duración',
-                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo. En la impresión en papel se resalta automáticamente en tamaño mayor y negrita.',
-                tip: 'Las casillas de hora muestran claramente horas y minutos sin que el icono del reloj estorbe.'
+                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo.',
+                tip: 'Las casillas de hora muestran claramente horas y minutos.'
             },
             {
                 targetId: 'tour-actividad-card',
                 icono: 'fa-arrows-up-down-left-right',
                 titulo: 'Arrastrar Actividades (Drag & Drop)',
-                descripcion: '<strong>¡Ahora puedes mover actividades libremente!</strong> Pincha en el icono de puntos (⋮⋮) de cualquier actividad y arrástrala hacia otro día o hacia otra hora para resituarla al instante.<br><br>El cómputo de horas del monitor se ajusta automáticamente según la duración de la nueva franja.',
-                tip: 'Para añadir otra actividad simultánea en la misma franja horaria (ej: dos salas a la vez), pulsa el botón verde (+) de la cabecera.'
+                descripcion: 'Pincha en el icono de puntos (⋮⋮) de cualquier actividad y arrástrala hacia otro día o hacia otra hora para resituarla al instante.',
+                tip: 'Para añadir otra actividad simultánea en la misma franja horaria, pulsa el botón verde (+).'
             },
             {
                 targetId: 'tour-totales-pie',
                 icono: 'fa-highlighter',
                 titulo: 'Resaltar Empleado y Total de Horas',
-                descripcion: '¡Haz clic sobre cualquier monitor del pie para resaltar todas sus clases y horas en el calendario! Las casillas se iluminarán en amarillo y mostrarán sus horas exactas. Vuelve a hacer clic para desactivar el resalte.',
-                tip: 'El resalte se transfiere a la impresión en papel y a PDF para generar calendarios individuales por monitor.'
+                descripcion: '¡Haz clic sobre cualquier monitor del pie para resaltar todas sus clases y horas en el calendario! Las casillas se iluminarán en amarillo y mostrarán sus horas exactas.',
+                tip: 'El pie permanece siempre visible al hacer scroll vertical.'
             }
         ];
 
@@ -1994,7 +2327,6 @@
 
             if (elem) {
                 elem.classList.add('tour-highlight');
-                // Scroll instantáneo seguro para evitar desfases de cálculo
                 elem.scrollIntoView({ behavior: 'auto', block: 'nearest' });
             }
 
@@ -2010,11 +2342,9 @@
             btnSig.textContent = pasoTourActual === pasosTour.length - 1 ? 'Finalizar' : 'Siguiente';
 
             posicionarTarjetaTour(elem);
-            // Reposicionamiento de seguridad en el siguiente frame
             requestAnimationFrame(() => posicionarTarjetaTour(elem));
         }
 
-        // POSICIONAMIENTO QUE GARANTIZA QUE LA TARJETA NUNCA QUEDE FUERA DEL VISOR
         function posicionarTarjetaTour(targetElem) {
             const card = document.getElementById('tour-card');
             if (!targetElem || !card) return;
@@ -2027,17 +2357,14 @@
 
             let top, left;
 
-            // Si el elemento a resaltar está en la mitad inferior de la pantalla, colocamos la tarjeta ARRIBA
             if (rect.top > windowHeight * 0.45) {
                 top = rect.top - cardHeight - 16;
             } else {
                 top = rect.bottom + 16;
             }
 
-            // Centrado horizontal con respecto al elemento objetivo
             left = rect.left + (rect.width / 2) - (cardWidth / 2);
 
-            // LIMITADORES ESTRICTOS: NUNCA se saldrá del marco de la pantalla
             const maxTop = Math.max(12, windowHeight - cardHeight - 14);
             top = Math.max(12, Math.min(top, maxTop));
 
