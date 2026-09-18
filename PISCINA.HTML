@@ -94,6 +94,16 @@
             outline-offset: -2px;
         }
 
+        /* DESTELLO DE INSERCIÓN EXITOSA (CONFIRMACIÓN SIN MOVER CURSOR) */
+        @keyframes flashInsercion {
+            0% { background-color: #bbf7d0 !important; outline: 3px solid #16a34a !important; }
+            50% { background-color: #dcfce7 !important; outline: 2px solid #22c55e !important; }
+            100% { background-color: transparent; outline: none; }
+        }
+        .celda-insercion-reciente {
+            animation: flashInsercion 0.7s ease-out;
+        }
+
         /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA (PANTALLA) */
         .act-card.act-card-resaltado,
         .act-card.act-card-resaltado-actividad {
@@ -365,13 +375,13 @@
                 <button onclick="cambiarSemana(1)" title="Semana siguiente" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition cursor-pointer">
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
-                <button onclick="borrarSemanaActual()" title="Eliminar este calendario" class="ml-1 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1 transition cursor-pointer">
-                    <i class="fa-solid fa-trash-can"></i> Borrar
+                <!-- BOTÓN BORRAR/VACIAR -->
+                <button onclick="abrirModalBorrarVaciar()" title="Borrar o vaciar este calendario" class="ml-1 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+                    <i class="fa-solid fa-trash-can"></i> Borrar/Vaciar
                 </button>
             </div>
 
             <div class="flex flex-wrap items-center gap-1.5">
-                <!-- BOTÓN CALENDARIO EN BLANCO -->
                 <button id="tour-nuevo" onclick="crearSemanaEnBlanco()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-calendar-plus"></i> Calendario en Blanco
                 </button>
@@ -409,13 +419,11 @@
 
             <!-- BOTONES DE MODO RÁPIDO Y VISTA COMPLETA -->
             <div class="flex items-center gap-1.5 no-print">
-                <!-- BOTÓN INSERTAR EVENTOS A UN CLIC -->
                 <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-bolt-lightning text-amber-900"></i>
                     <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
                 </button>
 
-                <!-- BOTÓN: VISTA COMPLETA (SIN SCROLL) -->
                 <button id="btn-vista-completa" onclick="toggleVistaCompleta()" title="Ajustar zoom para ver todo el calendario completo sin hacer scroll vertical" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 py-1.5 rounded-xl shadow border-2 border-indigo-700 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-compress"></i>
                     <span id="txt-btn-vista">VISTA COMPLETA</span>
@@ -474,7 +482,7 @@
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-cyan-400 text-sm"></i>
                     <span>
-                        <b>Pasos:</b> <b>1)</b> Marca una o varias <i>Actividades</i>. <b>2)</b> Marca uno o varios <i>Monitores</i>. <b>3)</b> Marca una <i>Sala</i>. <b>4)</b> Haz clic sobre las casillas del calendario donde quieras colocarlas. Puedes usar el aspa (✕) para quitar opciones que no uses.
+                        <b>Pasos:</b> <b>1)</b> Marca una o varias <i>Actividades</i>. <b>2)</b> Marca uno o varios <i>Monitores</i>. <b>3)</b> Marca una <i>Sala</i>. <b>4)</b> Haz clic sobre las casillas del calendario donde quieras colocarlas. ¡No perderás de vista dónde estás insertando!
                     </span>
                 </div>
                 <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs truncate">
@@ -538,6 +546,55 @@
 
         <div id="contenedor-principal"></div>
 
+    </div>
+
+    <!-- MODAL BORRAR O VACIAR CALENDARIO -->
+    <div id="modal-borrar-vaciar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> ¿Borrar o Vaciar Calendario?
+                </h3>
+                <button onclick="cerrarModalBorrarVaciar()" class="text-slate-400 hover:text-slate-600 text-base cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selecciona la acción que deseas realizar sobre el calendario actual: <br>
+                <strong id="texto-nombre-calendario-borrar" class="text-cyan-900 font-extrabold text-sm block mt-1"></strong>
+            </p>
+
+            <div class="space-y-2.5 pt-1">
+                <!-- OPCIÓN 1: VACIAR CLASES -->
+                <button onclick="vaciarSemanaActual()" class="w-full text-left bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 p-3 rounded-xl transition cursor-pointer group">
+                    <div class="flex items-center gap-2 text-amber-900 font-black text-xs">
+                        <i class="fa-solid fa-broom text-amber-600 text-sm"></i>
+                        <span>1. VACIAR TODAS LAS CLASES</span>
+                    </div>
+                    <p class="text-[11px] text-amber-800/80 mt-1 leading-tight">
+                        Elimina todas las actividades asignadas pero <b>mantiene intactos todos los horarios</b> (filas y tramos creados).
+                    </p>
+                </button>
+
+                <!-- OPCIÓN 2: ELIMINAR CALENDARIO COMPLETO -->
+                <button onclick="eliminarSemanaActualCompleta()" class="w-full text-left bg-red-50 hover:bg-red-100 border-2 border-red-300 p-3 rounded-xl transition cursor-pointer group">
+                    <div class="flex items-center gap-2 text-red-900 font-black text-xs">
+                        <i class="fa-solid fa-trash-can text-red-600 text-sm"></i>
+                        <span>2. ELIMINAR CALENDARIO COMPLETO</span>
+                    </div>
+                    <p class="text-[11px] text-red-800/80 mt-1 leading-tight">
+                        Elimina definitivamente esta semana de la lista de calendarios.
+                    </p>
+                </button>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t">
+                <button onclick="cerrarModalBorrarVaciar()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
+                    Cancelar
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL DE AYUDA / TOUR -->
@@ -1114,6 +1171,50 @@
             render();
         }
 
+        // CONTROL DE BORRAR O VACIAR CALENDARIO
+        function abrirModalBorrarVaciar() {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+            document.getElementById('texto-nombre-calendario-borrar').textContent = `"${semana.rango}"`;
+            document.getElementById('modal-borrar-vaciar').classList.remove('hidden');
+        }
+
+        function cerrarModalBorrarVaciar() {
+            document.getElementById('modal-borrar-vaciar').classList.add('hidden');
+        }
+
+        function vaciarSemanaActual() {
+            const semana = obtenerSemanaActiva();
+            if (!semana || !semana.filas) return;
+
+            semana.filas.forEach(f => {
+                DIAS.forEach(d => {
+                    f.dias[d] = [];
+                });
+            });
+
+            guardar();
+            render();
+            cerrarModalBorrarVaciar();
+        }
+
+        function eliminarSemanaActualCompleta() {
+            const semana = obtenerSemanaActiva();
+            if (!semana) return;
+
+            if (appData.semanas.length <= 1) {
+                alert('No se puede eliminar el único calendario existente. Si deseas limpiarlo por completo, utiliza la opción "Vaciar todas las clases".');
+                return;
+            }
+
+            const idx = appData.semanas.findIndex(s => s.id === semana.id);
+            appData.semanas.splice(idx, 1);
+            appData.semanaActivaId = appData.semanas.length > 0 ? appData.semanas[Math.max(0, idx - 1)].id : null;
+            guardar();
+            render();
+            cerrarModalBorrarVaciar();
+        }
+
         // ==========================================================
         // --- CONTROL DE VISTA COMPLETA (SIN SCROLL VERTICAL) ---
         // ==========================================================
@@ -1362,7 +1463,6 @@
             renderPanelModoRapido();
         }
 
-        // ELIMINAR REFERENCIA DIRECTAMENTE DESDE EL PANEL RÁPIDO MEDIANTE EL ASPA
         function eliminarElementoRapido(tipo, indice) {
             if (tipo === 'actividades') {
                 const item = appData.actividadesCatalogo[indice];
@@ -1446,6 +1546,7 @@
             }
         }
 
+        // INSERCIÓN RÁPIDA: PRESERVA EL FOCO Y SCROLL EXACTO SIN SUBIR LA PANTALLA
         function ejecutarInsercionRapidaEnCelda(fIndex, dia) {
             if (!modoRapidoActivo) return;
 
@@ -1475,7 +1576,8 @@
             });
 
             guardar();
-            render();
+            // Renderiza manteniendo el scroll e iluminando la celda pulsada
+            render(`celda_${fIndex}_${dia}`);
         }
 
         // ==========================================================
@@ -1679,9 +1781,15 @@
         // ==========================================================
         // --- RENDERIZADO PRINCIPAL DEL CUADRANTE ---
         // ==========================================================
-        function render() {
+        function render(celdaDestacada = null) {
             const contenedor = document.getElementById('contenedor-principal');
             if (!contenedor) return;
+
+            // MEMORIZAR POSICIÓN DE SCROLL PARA EVITAR CUALQUIER SALTO
+            const contenedorScrollPrevio = document.querySelector('.tabla-contenedor-scroll');
+            const prevScrollTop = contenedorScrollPrevio ? contenedorScrollPrevio.scrollTop : 0;
+            const prevScrollLeft = contenedorScrollPrevio ? contenedorScrollPrevio.scrollLeft : 0;
+            const prevWindowY = window.scrollY;
 
             try {
                 const semana = obtenerSemanaActiva();
@@ -1854,6 +1962,7 @@
                             if (!fila.dias) fila.dias = {};
                             if (!Array.isArray(fila.dias[dia])) fila.dias[dia] = [];
                             const actividades = fila.dias[dia];
+                            const celdaId = `celda_${fIndex}_${dia}`;
 
                             const actsHtml = actividades.map((act, actIndex) => {
                                 const tieneMonitores = act.monitores && act.monitores.length > 0;
@@ -1965,7 +2074,7 @@
                             const tooltipCelda = modoRapidoActivo ? 'title="Haz clic aquí para añadir la selección rápida a este tramo"' : '';
 
                             return `
-                                <td class="celda-dia-drop p-1 border border-slate-300 align-top transition-all"
+                                <td data-celda-id="${celdaId}" class="celda-dia-drop p-1 border border-slate-300 align-top transition-all"
                                     ${clickCeldaHandler}
                                     ${tooltipCelda}
                                     ondragover="manejarDragOver(event)"
@@ -2004,6 +2113,23 @@
 
                 contenedor.innerHTML = htmlTabla;
                 calcularTotales();
+
+                // RESTAURAR POSICIÓN DE SCROLL EXACTA
+                const nuevoContenedorScroll = document.querySelector('.tabla-contenedor-scroll');
+                if (nuevoContenedorScroll) {
+                    nuevoContenedorScroll.scrollTop = prevScrollTop;
+                    nuevoContenedorScroll.scrollLeft = prevScrollLeft;
+                }
+                window.scrollTo(window.scrollX, prevWindowY);
+
+                // DESTELLO VISUAL EN LA CELDA DONDE SE INSERTÓ EL EVENTO
+                if (celdaDestacada) {
+                    const elCelda = document.querySelector(`[data-celda-id="${celdaDestacada}"]`);
+                    if (elCelda) {
+                        elCelda.classList.add('celda-insercion-reciente');
+                        setTimeout(() => elCelda.classList.remove('celda-insercion-reciente'), 750);
+                    }
+                }
 
             } catch (error) {
                 console.error("Error al renderizar:", error);
@@ -2392,28 +2518,6 @@
             render();
         }
 
-        function borrarSemanaActual() {
-            const semana = obtenerSemanaActiva();
-            if (!semana) return;
-
-            if (appData.semanas.length <= 1) {
-                if (confirm(`Es el único calendario existente. ¿Deseas vaciarlo por completo?`)) {
-                    semana.filas = [];
-                    guardar();
-                    render();
-                }
-                return;
-            }
-
-            if (confirm(`¿Estás seguro de que deseas eliminar permanentemente el calendario:\n\n"${semana.rango}"?`)) {
-                const idx = appData.semanas.findIndex(s => s.id === semana.id);
-                appData.semanas.splice(idx, 1);
-                appData.semanaActivaId = appData.semanas.length > 0 ? appData.semanas[Math.max(0, idx - 1)].id : null;
-                guardar();
-                render();
-            }
-        }
-
         function seleccionarSemana(id) {
             appData.semanaActivaId = id;
             guardar();
@@ -2470,7 +2574,7 @@
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
                 titulo: 'Insertar Eventos a un Clic',
-                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante.',
+                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante sin que la pantalla salte.',
                 tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
             },
             {
@@ -2491,7 +2595,7 @@
                 targetId: 'tour-semanas',
                 icono: 'fa-calendar-days',
                 titulo: 'Gestión y Cambio de Semanas',
-                descripcion: 'Permite alternar entre diferentes calendarios o semanas mediante el menú desplegable y las flechas. El botón rojo elimina la semana en pantalla.',
+                descripcion: 'Permite alternar entre diferentes calendarios mediante el selector y las flechas. El botón Borrar/Vaciar permite limpiar las clases o eliminar el calendario completo.',
                 tip: 'El nombre o rango de fechas de la cabecera se puede modificar en cualquier momento escribiendo en él.'
             },
             {
