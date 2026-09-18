@@ -89,7 +89,7 @@
             transition: background-color 0.15s ease, outline 0.15s ease;
         }
         .modo-rapido-activo-grid .celda-dia-drop:hover {
-            background-color: #fef08a !important; /* Amarillo suave indicador de clic */
+            background-color: #fef08a !important;
             outline: 2px dashed #b45309 !important;
             outline-offset: -2px;
         }
@@ -97,8 +97,8 @@
         /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA (PANTALLA) */
         .act-card.act-card-resaltado,
         .act-card.act-card-resaltado-actividad {
-            background-color: #fef08a !important; /* Amarillo marcador pastel */
-            border: 2px solid #b45309 !important; /* Borde ámbar oscuro visible */
+            background-color: #fef08a !important;
+            border: 2px solid #b45309 !important;
             box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.45) !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -127,7 +127,7 @@
 
         /* EFECTO VISUAL DE DESTINO AL ARRASTRAR ACTIVIDADES (DRAG & DROP) */
         .celda-drop-activa {
-            background-color: #cffafe !important; /* Cyan 100 suave */
+            background-color: #cffafe !important;
             outline: 2px dashed #0891b2 !important;
             outline-offset: -2px;
             transition: all 0.15s ease-in-out;
@@ -415,7 +415,7 @@
                     <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
                 </button>
 
-                <!-- NUEVO BOTÓN: VISTA COMPLETA (SIN SCROLL) -->
+                <!-- BOTÓN: VISTA COMPLETA (SIN SCROLL) -->
                 <button id="btn-vista-completa" onclick="toggleVistaCompleta()" title="Ajustar zoom para ver todo el calendario completo sin hacer scroll vertical" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 py-1.5 rounded-xl shadow border-2 border-indigo-700 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-compress"></i>
                     <span id="txt-btn-vista">VISTA COMPLETA</span>
@@ -1117,24 +1117,46 @@
         // ==========================================================
         // --- CONTROL DE VISTA COMPLETA (SIN SCROLL VERTICAL) ---
         // ==========================================================
-        function toggleVistaCompleta() {
-            vistaCompletaActiva = !vistaCompletaActiva;
+        function setVistaCompleta(activar) {
+            vistaCompletaActiva = !!activar;
             const btn = document.getElementById('btn-vista-completa');
             const txt = document.getElementById('txt-btn-vista');
-            const icono = btn.querySelector('i');
+            const icono = btn ? btn.querySelector('i') : null;
 
             if (vistaCompletaActiva) {
                 document.body.classList.add('modo-vista-completa');
-                btn.classList.remove('bg-indigo-600', 'border-indigo-700', 'hover:bg-indigo-700');
-                btn.classList.add('bg-emerald-600', 'border-emerald-700', 'hover:bg-emerald-700');
-                txt.textContent = 'VISTA NORMAL';
-                icono.className = 'fa-solid fa-expand';
+                if (btn) {
+                    btn.classList.remove('bg-indigo-600', 'border-indigo-700', 'hover:bg-indigo-700');
+                    btn.classList.add('bg-emerald-600', 'border-emerald-700', 'hover:bg-emerald-700');
+                }
+                if (txt) txt.textContent = 'VISTA NORMAL';
+                if (icono) icono.className = 'fa-solid fa-expand';
             } else {
                 document.body.classList.remove('modo-vista-completa');
-                btn.classList.remove('bg-emerald-600', 'border-emerald-700', 'hover:bg-emerald-700');
-                btn.classList.add('bg-indigo-600', 'border-indigo-700', 'hover:bg-indigo-700');
-                txt.textContent = 'VISTA COMPLETA';
-                icono.className = 'fa-solid fa-compress';
+                if (btn) {
+                    btn.classList.remove('bg-emerald-600', 'border-emerald-700', 'hover:bg-emerald-700');
+                    btn.classList.add('bg-indigo-600', 'border-indigo-700', 'hover:bg-indigo-700');
+                }
+                if (txt) txt.textContent = 'VISTA COMPLETA';
+                if (icono) icono.className = 'fa-solid fa-compress';
+            }
+        }
+
+        function toggleVistaCompleta(forzarEstado = null) {
+            if (forzarEstado !== null) {
+                setVistaCompleta(forzarEstado);
+            } else {
+                setVistaCompleta(!vistaCompletaActiva);
+            }
+        }
+
+        // SINCRONIZACIÓN AUTOMÁTICA DE VISTA SEGÚN RESALTE
+        function sincronizarVistaSegunResalte() {
+            const hayResalteActivo = !!(monitorResaltado || actividadResaltada);
+            if (hayResalteActivo) {
+                setVistaCompleta(true);
+            } else {
+                setVistaCompleta(false);
             }
         }
 
@@ -1359,7 +1381,10 @@
                     appData.monitores.splice(indice, 1);
                     const selIdx = seleccionRapida.monitores.indexOf(item);
                     if (selIdx >= 0) seleccionRapida.monitores.splice(selIdx, 1);
-                    if (monitorResaltado === item) monitorResaltado = null;
+                    if (monitorResaltado === item) {
+                        monitorResaltado = null;
+                        sincronizarVistaSegunResalte();
+                    }
                     guardar();
                     renderPanelModoRapido();
                     render();
@@ -1462,6 +1487,7 @@
             } else {
                 monitorResaltado = nombre;
             }
+            sincronizarVistaSegunResalte();
             render();
         }
 
@@ -1470,6 +1496,7 @@
             const val = inputElem.value.trim().toUpperCase();
             if (val) {
                 actividadResaltada = val;
+                sincronizarVistaSegunResalte();
                 aplicarResalteActividadEnDOM(val);
             }
         }
@@ -1478,6 +1505,7 @@
             if (!inputElem) return;
             const val = inputElem.value.trim().toUpperCase();
             actividadResaltada = val || null;
+            sincronizarVistaSegunResalte();
             aplicarResalteActividadEnDOM(val);
         }
 
@@ -1550,6 +1578,7 @@
 
         function desmarcarActividad() {
             actividadResaltada = null;
+            sincronizarVistaSegunResalte();
             aplicarResalteActividadEnDOM('');
             render();
         }
@@ -2150,6 +2179,7 @@
                     if (valor.trim() && !appData.actividadesCatalogo.includes(valor.trim().toUpperCase())) {
                         appData.actividadesCatalogo.push(valor.trim().toUpperCase());
                     }
+                    sincronizarVistaSegunResalte();
                     render();
                 } else if (campo === 'sala') {
                     if (valor.trim() && !appData.salasCatalogo.includes(valor.trim().toUpperCase())) {
@@ -2440,14 +2470,14 @@
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
                 titulo: 'Insertar Eventos a un Clic',
-                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante. Cuenta con aspas (✕) para quitar elementos directamente desde el panel.',
+                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante.',
                 tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
             },
             {
                 targetId: 'btn-vista-completa',
                 icono: 'fa-compress',
                 titulo: 'Modo Vista Completa',
-                descripcion: 'Reduce automáticamente la escala y ajusta las fuentes del calendario para que quepan todas las horas del día en tu pantalla a la vez sin tener que hacer scroll vertical.',
+                descripcion: 'Reduce automáticamente la escala y ajusta las fuentes del calendario para que quepan todas las horas del día en tu pantalla a la vez sin tener que hacer scroll vertical. ¡Se activa solo al resaltar un monitor o actividad!',
                 tip: 'Vuelve a pulsar para restaurar la vista normal cuando lo necesites.'
             },
             {
