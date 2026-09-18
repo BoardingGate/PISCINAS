@@ -33,6 +33,7 @@
             overflow-y: auto;
             overflow-x: auto;
             position: relative;
+            transition: all 0.2s ease-in-out;
         }
         .print-table thead th {
             position: sticky;
@@ -47,6 +48,39 @@
             z-index: 25;
             background-color: #cbd5e1 !important; /* Slate 300 */
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* MODO VISTA COMPLETA (AJUSTE PARA VISIÓN TOTAL SIN SCROLL VERTICAL) */
+        body.modo-vista-completa {
+            padding: 4px 8px !important;
+        }
+        body.modo-vista-completa header {
+            padding: 4px 8px !important;
+        }
+        body.modo-vista-completa #cabecera-documento {
+            padding: 4px 8px !important;
+        }
+        body.modo-vista-completa .tabla-contenedor-scroll {
+            zoom: 0.70;
+            max-height: calc((100vh - 110px) / 0.70) !important;
+        }
+        body.modo-vista-completa td,
+        body.modo-vista-completa th {
+            padding: 1px 2px !important;
+        }
+        body.modo-vista-completa .act-card {
+            padding: 1px 2px !important;
+            margin-bottom: 1px !important;
+        }
+        body.modo-vista-completa .celda-horario input[type="time"] {
+            width: 72px !important;
+            padding: 0 1px !important;
+            font-size: 11px !important;
+        }
+        body.modo-vista-completa .celda-horario .duracion-badge {
+            width: 72px !important;
+            padding: 1px 0 !important;
+            font-size: 8.5px !important;
         }
 
         /* MODO INSERCIÓN RÁPIDA: EFECTO VISUAL EN CELDAS */
@@ -128,6 +162,7 @@
             .tabla-contenedor-scroll {
                 max-height: none !important;
                 overflow: visible !important;
+                zoom: 1 !important;
             }
             .print-table thead th,
             .print-table tfoot td {
@@ -372,11 +407,20 @@
                 <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir rápidamente.</p>
             </div>
 
-            <!-- BOTÓN INSERTAR EVENTOS A UN CLIC -->
-            <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="no-print bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-2 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
-                <i class="fa-solid fa-bolt-lightning text-amber-900"></i>
-                <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
-            </button>
+            <!-- BOTONES DE MODO RÁPIDO Y VISTA COMPLETA -->
+            <div class="flex items-center gap-1.5 no-print">
+                <!-- BOTÓN INSERTAR EVENTOS A UN CLIC -->
+                <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-bolt-lightning text-amber-900"></i>
+                    <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
+                </button>
+
+                <!-- NUEVO BOTÓN: VISTA COMPLETA (SIN SCROLL) -->
+                <button id="btn-vista-completa" onclick="toggleVistaCompleta()" title="Ajustar zoom para ver todo el calendario completo sin hacer scroll vertical" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 py-1.5 rounded-xl shadow border-2 border-indigo-700 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-compress"></i>
+                    <span id="txt-btn-vista">VISTA COMPLETA</span>
+                </button>
+            </div>
 
             <div class="flex flex-wrap items-center gap-2">
                 <!-- CHIP DE RESALTE ACTIVO DE EMPLEADO -->
@@ -430,7 +474,7 @@
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-cyan-400 text-sm"></i>
                     <span>
-                        <b>Pasos:</b> <b>1)</b> Marca una o varias <i>Actividades</i>. <b>2)</b> Marca uno o varios <i>Monitores</i>. <b>3)</b> Marca una <i>Sala</i>. <b>4)</b> Haz clic sobre las casillas del calendario donde quieras colocarlas. ¡No se cerrará hasta pulsar <b>Finalizar</b>!
+                        <b>Pasos:</b> <b>1)</b> Marca una o varias <i>Actividades</i>. <b>2)</b> Marca uno o varios <i>Monitores</i>. <b>3)</b> Marca una <i>Sala</i>. <b>4)</b> Haz clic sobre las casillas del calendario donde quieras colocarlas. Puedes usar el aspa (✕) para quitar opciones que no uses.
                     </span>
                 </div>
                 <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs truncate">
@@ -738,6 +782,9 @@
             monitores: [],
             sala: ''
         };
+
+        // ESTADO DE VISTA COMPLETA (SIN SCROLL)
+        let vistaCompletaActiva = false;
 
         let contextoAsignacion = null;
         let monitorResaltado = null;
@@ -1067,6 +1114,30 @@
             render();
         }
 
+        // ==========================================================
+        // --- CONTROL DE VISTA COMPLETA (SIN SCROLL VERTICAL) ---
+        // ==========================================================
+        function toggleVistaCompleta() {
+            vistaCompletaActiva = !vistaCompletaActiva;
+            const btn = document.getElementById('btn-vista-completa');
+            const txt = document.getElementById('txt-btn-vista');
+            const icono = btn.querySelector('i');
+
+            if (vistaCompletaActiva) {
+                document.body.classList.add('modo-vista-completa');
+                btn.classList.remove('bg-indigo-600', 'border-indigo-700', 'hover:bg-indigo-700');
+                btn.classList.add('bg-emerald-600', 'border-emerald-700', 'hover:bg-emerald-700');
+                txt.textContent = 'VISTA NORMAL';
+                icono.className = 'fa-solid fa-expand';
+            } else {
+                document.body.classList.remove('modo-vista-completa');
+                btn.classList.remove('bg-emerald-600', 'border-emerald-700', 'hover:bg-emerald-700');
+                btn.classList.add('bg-indigo-600', 'border-indigo-700', 'hover:bg-indigo-700');
+                txt.textContent = 'VISTA COMPLETA';
+                icono.className = 'fa-solid fa-compress';
+            }
+        }
+
         function abrirModalBackup() {
             document.getElementById('check-autobackup').checked = !!(appData.config && appData.config.autoBackup);
             document.getElementById('modal-backup').classList.remove('hidden');
@@ -1166,42 +1237,66 @@
             render();
         }
 
+        // RENDERIZAR PANEL CON BOTÓN DE ASPA (✕) PARA ELIMINAR REFERENCIAS
         function renderPanelModoRapido() {
-            // 1. Renderizar Actividades por índice
+            // 1. Renderizar Actividades con aspa
             const contAct = document.getElementById('contenedor-pills-actividades');
             contAct.innerHTML = appData.actividadesCatalogo.map((act, idx) => {
                 const seleccionada = seleccionRapida.actividades.includes(act);
                 return `
-                    <button type="button" onclick="toggleSeleccionRapidaPorIndice('actividades', ${idx})" 
-                        class="px-2 py-1 rounded text-[10.5px] font-black transition border cursor-pointer ${seleccionada ? 'bg-cyan-400 text-slate-950 border-cyan-300 ring-2 ring-cyan-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-cyan-400'}">
-                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${escapeHtml(act)}
-                    </button>
+                    <div onclick="toggleSeleccionRapidaPorIndice('actividades', ${idx})" 
+                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10.5px] font-black transition border cursor-pointer select-none group ${seleccionada ? 'bg-cyan-400 text-slate-950 border-cyan-300 ring-2 ring-cyan-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-cyan-400'}">
+                        <span class="flex items-center gap-1">
+                            ${seleccionada ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
+                            <span>${escapeHtml(act)}</span>
+                        </span>
+                        <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('actividades', ${idx})" 
+                            title="Eliminar '${escapeHtml(act)}' del listado" 
+                            class="ml-0.5 opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-black/20 rounded px-1 transition text-[10px] cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 `;
             }).join('');
 
-            // 2. Renderizar Monitores por índice
+            // 2. Renderizar Monitores con aspa
             const contMon = document.getElementById('contenedor-pills-monitores');
             contMon.innerHTML = appData.monitores.map((mon, idx) => {
                 const seleccionado = seleccionRapida.monitores.includes(mon);
                 const colMon = obtenerColorTextoMonitor(mon);
                 return `
-                    <button type="button" onclick="toggleSeleccionRapidaPorIndice('monitores', ${idx})" 
-                        class="px-2 py-1 rounded text-[10.5px] font-black transition border flex items-center gap-1 cursor-pointer ${seleccionado ? 'bg-emerald-400 text-slate-950 border-emerald-300 ring-2 ring-emerald-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-emerald-400'}">
-                        ${seleccionado ? '<i class="fa-solid fa-check"></i>' : ''} 
-                        <span style="color: ${seleccionado ? '#022c22' : colMon};">${escapeHtml(mon)}</span>
-                    </button>
+                    <div onclick="toggleSeleccionRapidaPorIndice('monitores', ${idx})" 
+                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10.5px] font-black transition border cursor-pointer select-none group ${seleccionado ? 'bg-emerald-400 text-slate-950 border-emerald-300 ring-2 ring-emerald-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-emerald-400'}">
+                        <span class="flex items-center gap-1">
+                            ${seleccionado ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
+                            <span style="color: ${seleccionado ? '#022c22' : colMon};">${escapeHtml(mon)}</span>
+                        </span>
+                        <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('monitores', ${idx})" 
+                            title="Eliminar a '${escapeHtml(mon)}' de la lista" 
+                            class="ml-0.5 opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-black/20 rounded px-1 transition text-[10px] cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 `;
             }).join('');
 
-            // 3. Renderizar Salas por índice
+            // 3. Renderizar Salas con aspa
             const contSal = document.getElementById('contenedor-pills-salas');
             contSal.innerHTML = appData.salasCatalogo.map((sala, idx) => {
                 const seleccionada = (seleccionRapida.sala === sala);
                 return `
-                    <button type="button" onclick="toggleSeleccionRapidaPorIndice('sala', ${idx})" 
-                        class="px-2.5 py-1 rounded text-[10.5px] font-black transition border cursor-pointer ${seleccionada ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-amber-400'}">
-                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${escapeHtml(sala)}
-                    </button>
+                    <div onclick="toggleSeleccionRapidaPorIndice('sala', ${idx})" 
+                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10.5px] font-black transition border cursor-pointer select-none group ${seleccionada ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-amber-400'}">
+                        <span class="flex items-center gap-1">
+                            ${seleccionada ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
+                            <span>${escapeHtml(sala)}</span>
+                        </span>
+                        <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('sala', ${idx})" 
+                            title="Eliminar sala '${escapeHtml(sala)}' del listado" 
+                            class="ml-0.5 opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-black/20 rounded px-1 transition text-[10px] cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 `;
             }).join('');
 
@@ -1243,6 +1338,42 @@
                 }
             }
             renderPanelModoRapido();
+        }
+
+        // ELIMINAR REFERENCIA DIRECTAMENTE DESDE EL PANEL RÁPIDO MEDIANTE EL ASPA
+        function eliminarElementoRapido(tipo, indice) {
+            if (tipo === 'actividades') {
+                const item = appData.actividadesCatalogo[indice];
+                if (!item) return;
+                if (confirm(`¿Eliminar la actividad "${item}" del listado rápido?`)) {
+                    appData.actividadesCatalogo.splice(indice, 1);
+                    const selIdx = seleccionRapida.actividades.indexOf(item);
+                    if (selIdx >= 0) seleccionRapida.actividades.splice(selIdx, 1);
+                    guardar();
+                    renderPanelModoRapido();
+                }
+            } else if (tipo === 'monitores') {
+                const item = appData.monitores[indice];
+                if (!item) return;
+                if (confirm(`¿Eliminar al monitor "${item}" del listado general?`)) {
+                    appData.monitores.splice(indice, 1);
+                    const selIdx = seleccionRapida.monitores.indexOf(item);
+                    if (selIdx >= 0) seleccionRapida.monitores.splice(selIdx, 1);
+                    if (monitorResaltado === item) monitorResaltado = null;
+                    guardar();
+                    renderPanelModoRapido();
+                    render();
+                }
+            } else if (tipo === 'sala') {
+                const item = appData.salasCatalogo[indice];
+                if (!item) return;
+                if (confirm(`¿Eliminar la sala "${item}" del listado rápido?`)) {
+                    appData.salasCatalogo.splice(indice, 1);
+                    if (seleccionRapida.sala === item) seleccionRapida.sala = '';
+                    guardar();
+                    renderPanelModoRapido();
+                }
+            }
         }
 
         function promptCrearActividadRapida() {
@@ -2309,8 +2440,15 @@
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
                 titulo: 'Insertar Eventos a un Clic',
-                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante.',
+                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante. Cuenta con aspas (✕) para quitar elementos directamente desde el panel.',
                 tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
+            },
+            {
+                targetId: 'btn-vista-completa',
+                icono: 'fa-compress',
+                titulo: 'Modo Vista Completa',
+                descripcion: 'Reduce automáticamente la escala y ajusta las fuentes del calendario para que quepan todas las horas del día en tu pantalla a la vez sin tener que hacer scroll vertical.',
+                tip: 'Vuelve a pulsar para restaurar la vista normal cuando lo necesites.'
             },
             {
                 targetId: 'tour-nuevo',
