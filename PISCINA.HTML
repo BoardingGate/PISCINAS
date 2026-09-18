@@ -264,6 +264,32 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
+            #badge-filtro-monitor i,
+            #badge-filtro-actividad i {
+                font-size: 14px !important;
+                color: #b45309 !important;
+            }
+            #badge-filtro-monitor .texto-filtro-label,
+            #badge-filtro-actividad .texto-filtro-label {
+                font-size: 14px !important;
+                font-weight: 900 !important;
+                color: #78350f !important;
+                text-transform: uppercase !important;
+            }
+            #badge-filtro-monitor strong,
+            #badge-filtro-actividad strong {
+                font-size: 15px !important;
+                font-weight: 900 !important;
+                color: #000000 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+            }
+            #badge-filtro-monitor .horas-filtro-total,
+            #badge-filtro-actividad .horas-filtro-total {
+                font-size: 14px !important;
+                font-weight: 900 !important;
+                color: #92400e !important;
+            }
 
             tfoot tr {
                 background-color: #cbd5e1 !important;
@@ -297,40 +323,41 @@
         <header class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 justify-between items-center no-print">
             
             <div id="tour-semanas" class="flex items-center gap-1.5 p-1 rounded-lg">
-                <button onclick="cambiarSemana(-1)" title="Semana anterior" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition">
+                <button onclick="cambiarSemana(-1)" title="Semana anterior" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition cursor-pointer">
                     <i class="fa-solid fa-chevron-left text-xs"></i>
                 </button>
-                <select id="select-semanas" onchange="seleccionarSemana(this.value)" class="border border-slate-300 font-semibold rounded-lg p-1 bg-white text-cyan-900 outline-none text-xs max-w-xs"></select>
-                <button onclick="cambiarSemana(1)" title="Semana siguiente" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition">
+                <select id="select-semanas" onchange="seleccionarSemana(this.value)" class="border border-slate-300 font-semibold rounded-lg p-1 bg-white text-cyan-900 outline-none text-xs max-w-xs cursor-pointer"></select>
+                <button onclick="cambiarSemana(1)" title="Semana siguiente" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition cursor-pointer">
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
-                <button onclick="borrarSemanaActual()" title="Eliminar este calendario" class="ml-1 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1 transition">
+                <button onclick="borrarSemanaActual()" title="Eliminar este calendario" class="ml-1 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1 transition cursor-pointer">
                     <i class="fa-solid fa-trash-can"></i> Borrar
                 </button>
             </div>
 
             <div class="flex flex-wrap items-center gap-1.5">
-                <button id="tour-nuevo" onclick="crearSemanaEnBlanco()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
-                    <i class="fa-solid fa-file-circle-plus"></i> Nuevo en Blanco
+                <!-- BOTÓN CALENDARIO EN BLANCO -->
+                <button id="tour-nuevo" onclick="crearSemanaEnBlanco()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
+                    <i class="fa-solid fa-calendar-plus"></i> Calendario en Blanco
                 </button>
 
-                <button id="tour-clonar" onclick="clonarSemanaActual()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                <button id="tour-clonar" onclick="clonarSemanaActual()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-clone"></i> Clonar Semana
                 </button>
 
-                <button id="tour-monitores" onclick="abrirModalGestionMonitores()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                <button id="tour-monitores" onclick="abrirModalGestionMonitores()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-users-gear"></i> Monitores
                 </button>
 
-                <button id="tour-backup" onclick="abrirModalBackup()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                <button id="tour-backup" onclick="abrirModalBackup()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-shield-halved"></i> Copia / Backup
                 </button>
 
-                <button id="tour-imprimir" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs">
+                <button id="tour-imprimir" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-print"></i> Imprimir en 1 Hoja
                 </button>
 
-                <button onclick="iniciarTourAyuda()" class="bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs" title="Ver guía interactiva">
+                <button onclick="iniciarTourAyuda()" class="bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer" title="Ver guía interactiva">
                     <i class="fa-solid fa-circle-question"></i> Ayuda
                 </button>
             </div>
@@ -342,11 +369,11 @@
                 <h1 class="text-sm md:text-base font-black text-cyan-950 flex items-center gap-1.5">
                     <i class="fa-solid fa-person-swimming text-cyan-600"></i> ACTIVIDADES DIRIGIDAS - CONTROL DE HORAS
                 </h1>
-                <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir en masa rápidamente.</p>
+                <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir rápidamente.</p>
             </div>
 
-            <!-- BOTÓN SOLICITADO: INSERTAR EVENTOS A UN CLIC -->
-            <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="no-print bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-2 text-xs transition-all transform hover:scale-105 active:scale-95">
+            <!-- BOTÓN INSERTAR EVENTOS A UN CLIC -->
+            <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="no-print bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-2 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
                 <i class="fa-solid fa-bolt-lightning text-amber-900"></i>
                 <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
             </button>
@@ -358,7 +385,7 @@
                     <span class="texto-filtro-label">Horas de:</span>
                     <strong id="nombre-monitor-filtrado" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
                     <span id="horas-monitor-filtrado" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
-                    <button onclick="toggleResaltarMonitor(null)" title="Quitar resalte de empleado" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm">
+                    <button onclick="toggleResaltarMonitor(null)" title="Quitar resalte de empleado" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm cursor-pointer">
                         <i class="fa-solid fa-circle-xmark"></i>
                     </button>
                 </div>
@@ -369,7 +396,7 @@
                     <span class="texto-filtro-label">Actividad:</span>
                     <strong id="nombre-actividad-filtrada" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
                     <span id="conteo-actividad-filtrada" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
-                    <button onclick="desmarcarActividad()" title="Quitar resalte de actividad" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm">
+                    <button onclick="desmarcarActividad()" title="Quitar resalte de actividad" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm cursor-pointer">
                         <i class="fa-solid fa-circle-xmark"></i>
                     </button>
                 </div>
@@ -382,7 +409,7 @@
             </div>
         </div>
 
-        <!-- PANEL DE INSERCIÓN RÁPIDA A UN CLIC (NO TAPA EL CALENDARIO) -->
+        <!-- PANEL DE INSERCIÓN RÁPIDA A UN CLIC -->
         <div id="panel-modo-rapido" class="hidden no-print bg-slate-900 border-2 border-amber-400 text-white p-3 rounded-2xl shadow-xl space-y-2.5 transition-all">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
                 <div class="flex items-center gap-2">
@@ -393,7 +420,7 @@
                         Selecciona elementos abajo y haz clic en cualquier cuadrícula para agregarlos directamente.
                     </span>
                 </div>
-                <button onclick="toggleModoRapido(false)" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-1 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+                <button onclick="toggleModoRapido(false)" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-1 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer">
                     <i class="fa-solid fa-circle-check"></i> FINALIZAR
                 </button>
             </div>
@@ -407,7 +434,7 @@
                     </span>
                 </div>
                 <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs truncate">
-                    Seleccionado: Ninguno
+                    Listo para insertar: Sin actividad
                 </div>
             </div>
 
@@ -425,7 +452,7 @@
                         </div>
                         <div id="contenedor-pills-actividades" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1"></div>
                     </div>
-                    <button onclick="promptCrearActividadRapida()" class="w-full mt-1 border border-dashed border-cyan-500 hover:bg-cyan-950/60 text-cyan-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition">
+                    <button onclick="promptCrearActividadRapida()" class="w-full mt-1 border border-dashed border-cyan-500 hover:bg-cyan-950/60 text-cyan-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition cursor-pointer">
                         <i class="fa-solid fa-plus"></i> Añadir Actividad
                     </button>
                 </div>
@@ -441,7 +468,7 @@
                         </div>
                         <div id="contenedor-pills-monitores" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1"></div>
                     </div>
-                    <button onclick="promptCrearMonitorRapido()" class="w-full mt-1 border border-dashed border-emerald-500 hover:bg-emerald-950/60 text-emerald-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition">
+                    <button onclick="promptCrearMonitorRapido()" class="w-full mt-1 border border-dashed border-emerald-500 hover:bg-emerald-950/60 text-emerald-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition cursor-pointer">
                         <i class="fa-solid fa-plus"></i> Añadir Monitor
                     </button>
                 </div>
@@ -457,7 +484,7 @@
                         </div>
                         <div id="contenedor-pills-salas" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1"></div>
                     </div>
-                    <button onclick="promptCrearSalaRapida()" class="w-full mt-1 border border-dashed border-amber-500 hover:bg-amber-950/60 text-amber-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition">
+                    <button onclick="promptCrearSalaRapida()" class="w-full mt-1 border border-dashed border-amber-500 hover:bg-amber-950/60 text-amber-300 font-bold py-1 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 transition cursor-pointer">
                         <i class="fa-solid fa-plus"></i> Añadir Sala
                     </button>
                 </div>
@@ -629,6 +656,16 @@
         const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_FINAL';
         const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 
+        function escapeHtml(texto) {
+            if (!texto) return '';
+            return String(texto)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         const PALETA_COLORES_ACTIVIDAD = [
             '#dc2626', '#2563eb', '#16a34a', '#0d9488', '#7c3aed', 
             '#db2777', '#ea580c', '#d97706', '#4f46e5', '#059669', 
@@ -703,9 +740,9 @@
         };
 
         let contextoAsignacion = null;
-        let monitorResaltado = null;    // MONITOR ACTUALMENTE RESALTADO
-        let actividadResaltada = null;  // ACTIVIDAD ACTUALMENTE RESALTADA
-        let draggedActivity = null;     // OBJETO ARRASTRADO (DRAG & DROP)
+        let monitorResaltado = null;
+        let actividadResaltada = null;
+        let draggedActivity = null;
 
         function calcularDuracionHoras(inicio, fin) {
             if (!inicio || !fin) return 0;
@@ -785,9 +822,7 @@
                 cargarPlantillaOficialDesdeImagen();
             }
 
-            // Sincronizar catálogo con actividades y salas existentes en los eventos
             sincronizarCatalogosConEventos();
-
             guardar();
             render();
             configurarEventos();
@@ -1003,26 +1038,28 @@
             appData.semanaActivaId = nueva.id;
         }
 
+        // CREAR CALENDARIO EN BLANCO CON FRANGAS DE 1 HORA DESDE LAS 9:00 A LAS 23:00
         function crearSemanaEnBlanco() {
-            let nombre = prompt('Introduce el nombre o fechas de la nueva semana:', 'Semana ' + (appData.semanas.length + 1));
+            let nombre = prompt('Introduce el nombre o fechas del nuevo calendario en blanco:', 'Semana ' + (appData.semanas.length + 1));
             if (nombre === null) return;
             if (!nombre.trim()) nombre = 'Semana ' + (appData.semanas.length + 1);
+
+            const filasGeneradas = [];
+            for (let hora = 9; hora < 23; hora++) {
+                const hInicio = String(hora).padStart(2, '0') + ':00';
+                const hFin = String(hora + 1).padStart(2, '0') + ':00';
+                filasGeneradas.push({
+                    id: 'fila_' + Date.now() + '_' + hora,
+                    horaInicio: hInicio,
+                    horaFin: hFin,
+                    dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
+                });
+            }
 
             const nueva = {
                 id: 'sem_' + Date.now(),
                 rango: nombre.trim(),
-                filas: [
-                    {
-                        id: 'fila_' + Date.now() + '_1',
-                        horaInicio: '09:00', horaFin: '10:00',
-                        dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
-                    },
-                    {
-                        id: 'fila_' + Date.now() + '_2',
-                        horaInicio: '10:00', horaFin: '11:00',
-                        dias: { lunes: [], martes: [], miercoles: [], jueves: [], viernes: [], sabado: [] }
-                    }
-                ]
+                filas: filasGeneradas
             };
             appData.semanas.push(nueva);
             appData.semanaActivaId = nueva.id;
@@ -1130,69 +1167,75 @@
         }
 
         function renderPanelModoRapido() {
-            // 1. Renderizar Actividades
+            // 1. Renderizar Actividades por índice
             const contAct = document.getElementById('contenedor-pills-actividades');
-            contAct.innerHTML = appData.actividadesCatalogo.map(act => {
+            contAct.innerHTML = appData.actividadesCatalogo.map((act, idx) => {
                 const seleccionada = seleccionRapida.actividades.includes(act);
                 return `
-                    <button type="button" onclick="toggleSeleccionRapida('actividades', '${act}')" 
-                        class="px-2 py-1 rounded text-[10.5px] font-black transition border ${seleccionada ? 'bg-cyan-400 text-slate-950 border-cyan-300 ring-2 ring-cyan-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-cyan-400'}">
-                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${act}
+                    <button type="button" onclick="toggleSeleccionRapidaPorIndice('actividades', ${idx})" 
+                        class="px-2 py-1 rounded text-[10.5px] font-black transition border cursor-pointer ${seleccionada ? 'bg-cyan-400 text-slate-950 border-cyan-300 ring-2 ring-cyan-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-cyan-400'}">
+                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${escapeHtml(act)}
                     </button>
                 `;
             }).join('');
 
-            // 2. Renderizar Monitores
+            // 2. Renderizar Monitores por índice
             const contMon = document.getElementById('contenedor-pills-monitores');
-            contMon.innerHTML = appData.monitores.map(mon => {
+            contMon.innerHTML = appData.monitores.map((mon, idx) => {
                 const seleccionado = seleccionRapida.monitores.includes(mon);
                 const colMon = obtenerColorTextoMonitor(mon);
                 return `
-                    <button type="button" onclick="toggleSeleccionRapida('monitores', '${mon}')" 
-                        class="px-2 py-1 rounded text-[10.5px] font-black transition border flex items-center gap-1 ${seleccionado ? 'bg-emerald-400 text-slate-950 border-emerald-300 ring-2 ring-emerald-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-emerald-400'}">
+                    <button type="button" onclick="toggleSeleccionRapidaPorIndice('monitores', ${idx})" 
+                        class="px-2 py-1 rounded text-[10.5px] font-black transition border flex items-center gap-1 cursor-pointer ${seleccionado ? 'bg-emerald-400 text-slate-950 border-emerald-300 ring-2 ring-emerald-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-emerald-400'}">
                         ${seleccionado ? '<i class="fa-solid fa-check"></i>' : ''} 
-                        <span style="color: ${seleccionado ? '#022c22' : colMon};">${mon}</span>
+                        <span style="color: ${seleccionado ? '#022c22' : colMon};">${escapeHtml(mon)}</span>
                     </button>
                 `;
             }).join('');
 
-            // 3. Renderizar Salas
+            // 3. Renderizar Salas por índice
             const contSal = document.getElementById('contenedor-pills-salas');
-            contSal.innerHTML = appData.salasCatalogo.map(sala => {
+            contSal.innerHTML = appData.salasCatalogo.map((sala, idx) => {
                 const seleccionada = (seleccionRapida.sala === sala);
                 return `
-                    <button type="button" onclick="toggleSeleccionRapida('sala', '${sala}')" 
-                        class="px-2.5 py-1 rounded text-[10.5px] font-black transition border ${seleccionada ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-amber-400'}">
-                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${sala}
+                    <button type="button" onclick="toggleSeleccionRapidaPorIndice('sala', ${idx})" 
+                        class="px-2.5 py-1 rounded text-[10.5px] font-black transition border cursor-pointer ${seleccionada ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300' : 'bg-slate-700 text-slate-200 border-slate-600 hover:border-amber-400'}">
+                        ${seleccionada ? '<i class="fa-solid fa-check mr-0.5"></i>' : ''} ${escapeHtml(sala)}
                     </button>
                 `;
             }).join('');
 
             // 4. Actualizar Resumen de Selección
             const res = document.getElementById('resumen-seleccion-rapida');
-            const strAct = seleccionRapida.actividades.length ? seleccionRapida.actividades.join(' + ') : '<span class="text-slate-400">Sin actividad</span>';
-            const strMon = seleccionRapida.monitores.length ? seleccionRapida.monitores.join(', ') : '<span class="text-slate-400">Sin monitor</span>';
-            const strSal = seleccionRapida.sala ? `[${seleccionRapida.sala}]` : '<span class="text-slate-400">[Sin sala]</span>';
+            const strAct = seleccionRapida.actividades.length ? escapeHtml(seleccionRapida.actividades.join(' + ')) : '<span class="text-slate-400">Sin actividad</span>';
+            const strMon = seleccionRapida.monitores.length ? escapeHtml(seleccionRapida.monitores.join(', ')) : '<span class="text-slate-400">Sin monitor</span>';
+            const strSal = seleccionRapida.sala ? `[${escapeHtml(seleccionRapida.sala)}]` : '<span class="text-slate-400">[Sin sala]</span>';
 
             res.innerHTML = `Listo para insertar: <b>${strAct}</b> con <b>${strMon}</b> en <b>${strSal}</b>`;
         }
 
-        function toggleSeleccionRapida(tipo, valor) {
+        function toggleSeleccionRapidaPorIndice(tipo, indice) {
             if (tipo === 'actividades') {
-                const idx = seleccionRapida.actividades.indexOf(valor);
-                if (idx >= 0) {
-                    seleccionRapida.actividades.splice(idx, 1);
+                const valor = appData.actividadesCatalogo[indice];
+                if (!valor) return;
+                const pos = seleccionRapida.actividades.indexOf(valor);
+                if (pos >= 0) {
+                    seleccionRapida.actividades.splice(pos, 1);
                 } else {
                     seleccionRapida.actividades.push(valor);
                 }
             } else if (tipo === 'monitores') {
-                const idx = seleccionRapida.monitores.indexOf(valor);
-                if (idx >= 0) {
-                    seleccionRapida.monitores.splice(idx, 1);
+                const valor = appData.monitores[indice];
+                if (!valor) return;
+                const pos = seleccionRapida.monitores.indexOf(valor);
+                if (pos >= 0) {
+                    seleccionRapida.monitores.splice(pos, 1);
                 } else {
                     seleccionRapida.monitores.push(valor);
                 }
             } else if (tipo === 'sala') {
+                const valor = appData.salasCatalogo[indice];
+                if (!valor) return;
                 if (seleccionRapida.sala === valor) {
                     seleccionRapida.sala = '';
                 } else {
@@ -1262,7 +1305,6 @@
                 semana.filas[fIndex].dias[dia] = [];
             }
 
-            // Añadir cada una de las actividades seleccionadas con los monitores y sala elegidos
             seleccionRapida.actividades.forEach(actNombre => {
                 const monitoresConfigurados = seleccionRapida.monitores.map(mon => ({
                     monitor: mon,
@@ -1327,7 +1369,27 @@
                 return;
             }
 
+            const semana = obtenerSemanaActiva();
             let count = 0;
+            let minutosTotalAct = 0;
+
+            if (semana) {
+                (semana.filas || []).forEach(f => {
+                    const h = calcularDuracionHoras(f.horaInicio, f.horaFin);
+                    DIAS.forEach(d => {
+                        (f.dias[d] || []).forEach(a => {
+                            const valAct = (a.actividad || '').trim().toUpperCase();
+                            const coincide = (valAct === texto) || 
+                                             (texto.length >= 3 && valAct.startsWith(texto));
+                            if (coincide) {
+                                count++;
+                                minutosTotalAct += (h * 60);
+                            }
+                        });
+                    });
+                });
+            }
+
             document.querySelectorAll('.act-card').forEach(card => {
                 const inp = card.querySelector('.input-nombre-actividad');
                 if (inp) {
@@ -1336,15 +1398,18 @@
                                      (texto.length >= 3 && valTarjeta.startsWith(texto));
                     if (coincide) {
                         card.classList.add('act-card-resaltado-actividad');
-                        count++;
                     }
                 }
             });
 
+            const horasTotalAct = (minutosTotalAct / 60).toFixed(2);
+
             if (badgeActividad && spanActividad) {
                 badgeActividad.classList.remove('hidden');
                 spanActividad.textContent = texto;
-                if (conteoActividad) conteoActividad.textContent = `(${count} sesiones)`;
+                if (conteoActividad) {
+                    conteoActividad.textContent = `— ${horasTotalAct}h (${count} ${count === 1 ? 'sesión' : 'sesiones'})`;
+                }
             }
 
             if (contenedorTabla) {
@@ -1470,14 +1535,16 @@
                 const selSem = document.getElementById('select-semanas');
                 if (selSem) {
                     selSem.innerHTML = appData.semanas.map(s => `
-                        <option value="${s.id}" ${s.id === semana.id ? 'selected' : ''}>${s.rango}</option>
+                        <option value="${s.id}" ${s.id === semana.id ? 'selected' : ''}>${escapeHtml(s.rango)}</option>
                     `).join('');
                 }
 
                 const inpRango = document.getElementById('semana-rango');
                 if (inpRango) inpRango.value = semana.rango || '';
 
+                // CÁLCULO DE HORAS Y SESIONES DEL MONITOR RESALTADO
                 let totalHorasMonitor = 0;
+                let totalSesionesMonitor = 0;
                 if (monitorResaltado) {
                     let minutosTotal = 0;
                     (semana.filas || []).forEach(f => {
@@ -1487,6 +1554,7 @@
                                 (act.monitores || []).forEach(m => {
                                     if (m.monitor.toLowerCase() === monitorResaltado.toLowerCase() && m.asiste) {
                                         minutosTotal += (h * 60);
+                                        totalSesionesMonitor++;
                                     }
                                 });
                             });
@@ -1495,6 +1563,7 @@
                     totalHorasMonitor = (minutosTotal / 60).toFixed(2);
                 }
 
+                // CHIP DE EMPLEADO
                 const badgeFiltroMonitor = document.getElementById('badge-filtro-monitor');
                 const spanFiltroMonitor = document.getElementById('nombre-monitor-filtrado');
                 const horasFiltroMonitor = document.getElementById('horas-monitor-filtrado');
@@ -1502,30 +1571,42 @@
                     if (monitorResaltado) {
                         badgeFiltroMonitor.classList.remove('hidden');
                         spanFiltroMonitor.textContent = monitorResaltado.toUpperCase();
-                        if (horasFiltroMonitor) horasFiltroMonitor.textContent = `— ${totalHorasMonitor}h`;
+                        if (horasFiltroMonitor) {
+                            horasFiltroMonitor.textContent = `— ${totalHorasMonitor}h (${totalSesionesMonitor} ${totalSesionesMonitor === 1 ? 'sesión' : 'sesiones'})`;
+                        }
                     } else {
                         badgeFiltroMonitor.classList.add('hidden');
                     }
                 }
 
+                // CHIP DE ACTIVIDAD
                 const badgeFiltroActividad = document.getElementById('badge-filtro-actividad');
                 const spanFiltroActividad = document.getElementById('nombre-actividad-filtrada');
                 const conteoFiltroActividad = document.getElementById('conteo-actividad-filtrada');
                 if (badgeFiltroActividad && spanFiltroActividad) {
                     if (actividadResaltada) {
                         let count = 0;
+                        let minutosTotalAct = 0;
                         (semana.filas || []).forEach(f => {
+                            const h = calcularDuracionHoras(f.horaInicio, f.horaFin);
                             DIAS.forEach(d => {
                                 (f.dias[d] || []).forEach(a => {
-                                    if (a.actividad && a.actividad.trim().toUpperCase() === actividadResaltada) {
+                                    const valAct = (a.actividad || '').trim().toUpperCase();
+                                    const coincide = (valAct === actividadResaltada) || 
+                                                     (actividadResaltada.length >= 3 && valAct.startsWith(actividadResaltada));
+                                    if (coincide) {
                                         count++;
+                                        minutosTotalAct += (h * 60);
                                     }
                                 });
                             });
                         });
+                        const horasTotalAct = (minutosTotalAct / 60).toFixed(2);
                         badgeFiltroActividad.classList.remove('hidden');
                         spanFiltroActividad.textContent = actividadResaltada;
-                        if (conteoFiltroActividad) conteoFiltroActividad.textContent = `(${count} sesiones)`;
+                        if (conteoFiltroActividad) {
+                            conteoFiltroActividad.textContent = `— ${horasTotalAct}h (${count} ${count === 1 ? 'sesión' : 'sesiones'})`;
+                        }
                     } else {
                         badgeFiltroActividad.classList.add('hidden');
                     }
@@ -1545,7 +1626,7 @@
                                     <th class="p-1 border border-slate-700 w-36 text-center align-middle">
                                         <div class="flex flex-col items-center gap-0.5">
                                             <span class="font-bold tracking-wider text-[9.5px]">Horario</span>
-                                            <button onclick="agregarFila()" class="no-print bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-0.5 px-1.5 rounded shadow-2xs text-[9.5px] flex items-center justify-center gap-1 transition w-full">
+                                            <button onclick="agregarFila()" class="no-print bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-0.5 px-1.5 rounded shadow-2xs text-[9.5px] flex items-center justify-center gap-1 transition w-full cursor-pointer">
                                                 <i class="fa-solid fa-clock-medical"></i> + Tramos
                                             </button>
                                         </div>
@@ -1578,16 +1659,16 @@
                         let tdAccion = `
                             <td class="p-0.5 border border-slate-300 text-center align-middle no-print" ${fIndex === 0 ? 'id="tour-control-fila"' : ''}>
                                 <div class="flex items-center justify-center gap-1">
-                                    <button onclick="intercalarFilaDebajo(${fIndex})" title="Intercalar nueva franja horaria debajo" class="text-emerald-600 hover:text-emerald-800 p-0.5 text-xs transition">
+                                    <button onclick="intercalarFilaDebajo(${fIndex})" title="Intercalar nueva franja horaria debajo" class="text-emerald-600 hover:text-emerald-800 p-0.5 text-xs transition cursor-pointer">
                                         <i class="fa-solid fa-circle-plus"></i>
                                     </button>
-                                    <button onclick="moverFila(${fIndex}, -1)" title="Subir franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition ${fIndex === 0 ? 'opacity-20 cursor-not-allowed' : ''}">
+                                    <button onclick="moverFila(${fIndex}, -1)" title="Subir franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition cursor-pointer ${fIndex === 0 ? 'opacity-20 cursor-not-allowed' : ''}">
                                         <i class="fa-solid fa-arrow-up"></i>
                                     </button>
-                                    <button onclick="moverFila(${fIndex}, 1)" title="Bajar franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition ${fIndex === semana.filas.length - 1 ? 'opacity-20 cursor-not-allowed' : ''}">
+                                    <button onclick="moverFila(${fIndex}, 1)" title="Bajar franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition cursor-pointer ${fIndex === semana.filas.length - 1 ? 'opacity-20 cursor-not-allowed' : ''}">
                                         <i class="fa-solid fa-arrow-down"></i>
                                     </button>
-                                    <button onclick="eliminarFila(${fIndex})" title="Eliminar franja" class="text-slate-300 hover:text-red-600 p-0.5 text-[11px] transition">
+                                    <button onclick="eliminarFila(${fIndex})" title="Eliminar franja" class="text-slate-300 hover:text-red-600 p-0.5 text-[11px] transition cursor-pointer">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -1634,14 +1715,14 @@
 
                                     return `
                                         <div class="mon-badge inline-flex items-center gap-1 px-1 py-0.5 rounded transition ${esEsteElResaltado ? 'mon-badge-resaltado' : (m.asiste ? 'bg-cyan-50/70 border border-cyan-300/80' : 'bg-red-50 border border-red-200 opacity-60')}">
-                                            <label class="flex items-center gap-1 cursor-pointer truncate mr-0.5" title="${m.monitor} (Click para activar o desactivar sus horas)">
+                                            <label class="flex items-center gap-1 cursor-pointer truncate mr-0.5" title="${escapeHtml(m.monitor)} (Click para activar o desactivar sus horas)">
                                                 <input type="checkbox" ${m.asiste ? 'checked' : ''} onchange="toggleAsistencia(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" class="w-3 h-3 accent-cyan-700">
                                                 <span class="font-extrabold truncate ${m.asiste ? '' : 'line-through opacity-50'} text-[10px] max-w-[95px]"
                                                       style="color: ${esEsteElResaltado ? '#78350f' : (m.asiste ? colorMonitor : '#ef4444')};">
-                                                    ${m.monitor}
+                                                    ${escapeHtml(m.monitor)}
                                                 </span>
                                             </label>
-                                            <button onclick="event.stopPropagation(); quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px]">
+                                            <button onclick="event.stopPropagation(); quitarMonitor(${fIndex}, '${dia}', ${actIndex}, ${mIndex})" title="Quitar monitor" class="text-slate-400 hover:text-red-600 no-print text-[9px] cursor-pointer">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         </div>
@@ -1654,14 +1735,14 @@
                                         <div class="flex flex-wrap items-center gap-1 pt-0.5">
                                             ${monitoresItemsHtml}
                                             <button onclick="event.stopPropagation(); abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" title="Añadir otro monitor" 
-                                                class="border border-dashed border-cyan-400 text-cyan-700 hover:bg-cyan-100 rounded px-1.5 py-0.5 text-[8.5px] font-bold no-print flex items-center gap-0.5 transition shrink-0">
+                                                class="border border-dashed border-cyan-400 text-cyan-700 hover:bg-cyan-100 rounded px-1.5 py-0.5 text-[8.5px] font-bold no-print flex items-center gap-0.5 transition shrink-0 cursor-pointer">
                                                 <i class="fa-solid fa-user-plus text-[8px]"></i>
                                             </button>
                                         </div>
                                     `;
                                 } else {
                                     bloqueMonitores = `
-                                        <button onclick="event.stopPropagation(); abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" class="w-full mt-0.5 border border-dashed border-slate-300 text-slate-400 hover:text-cyan-800 hover:border-cyan-500 rounded py-0.5 text-[8.5px] flex items-center justify-center gap-0.5 no-print">
+                                        <button onclick="event.stopPropagation(); abrirModalAsignar(${fIndex}, '${dia}', ${actIndex})" class="w-full mt-0.5 border border-dashed border-slate-300 text-slate-400 hover:text-cyan-800 hover:border-cyan-500 rounded py-0.5 text-[8.5px] flex items-center justify-center gap-0.5 no-print cursor-pointer">
                                             <i class="fa-solid fa-plus"></i> Monitor
                                         </button>
                                     `;
@@ -1684,13 +1765,13 @@
                                                 <i class="fa-solid fa-grip-vertical text-[10px]"></i>
                                             </span>
 
-                                            <input type="text" value="${act.actividad || ''}" placeholder="Actividad..." 
+                                            <input type="text" value="${escapeHtml(act.actividad || '')}" placeholder="Actividad..." 
                                                 onclick="event.stopPropagation()"
                                                 onfocus="manejarFocoActividad(this)"
                                                 oninput="manejarInputActividad(this)"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'actividad', this.value)" 
                                                 style="color: ${colorLetra};"
-                                                class="input-nombre-actividad flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${act.actividad || ''}">
+                                                class="input-nombre-actividad flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${escapeHtml(act.actividad || '')}">
                                             
                                             ${(tieneMonitorResaltado || esActividadMarcada) ? `
                                                 <span class="duracion-clase-pill font-black text-[9px] bg-amber-300 text-amber-950 px-1 py-0.2 rounded border border-amber-400 shadow-2xs shrink-0" title="Horas calculadas de la clase">
@@ -1698,18 +1779,18 @@
                                                 </span>
                                             ` : ''}
 
-                                            <input type="text" value="${act.sala || ''}" placeholder="Sal" maxlength="4"
+                                            <input type="text" value="${escapeHtml(act.sala || '')}" placeholder="Sal" maxlength="4"
                                                 onclick="event.stopPropagation()"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'sala', this.value)" 
                                                 class="w-8 text-[9px] text-slate-700 uppercase font-bold text-center placeholder-slate-300 outline-none border border-slate-400/60 rounded px-0.5 shrink-0 bg-white/40" title="Sala / Vaso">
                                             
-                                            <button onclick="event.stopPropagation(); eliminarActividad(${fIndex}, '${dia}', ${actIndex})" title="Eliminar actividad" class="text-slate-300 hover:text-red-600 no-print text-[9px] ml-0.5 shrink-0">
+                                            <button onclick="event.stopPropagation(); eliminarActividad(${fIndex}, '${dia}', ${actIndex})" title="Eliminar actividad" class="text-slate-300 hover:text-red-600 no-print text-[9px] ml-0.5 shrink-0 cursor-pointer">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
 
                                             ${esUltimaActividad ? `
                                                 <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" title="Añadir otra actividad simultánea" 
-                                                    class="text-emerald-600 hover:text-emerald-800 no-print text-[11px] ml-0.5 shrink-0 transition" style="line-height: 1;">
+                                                    class="text-emerald-600 hover:text-emerald-800 no-print text-[11px] ml-0.5 shrink-0 transition cursor-pointer" style="line-height: 1;">
                                                     <i class="fa-solid fa-circle-plus"></i>
                                                 </button>
                                             ` : ''}
@@ -1732,7 +1813,7 @@
                                     ondrop="manejarDrop(event, ${fIndex}, '${dia}')">
                                     <div>${actsHtml}</div>
                                     ${actividades.length === 0 ? `
-                                        <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" class="w-full border border-dashed border-cyan-400 bg-white hover:bg-cyan-50 text-cyan-800 rounded py-0.5 text-[9px] font-semibold flex items-center justify-center gap-0.5 transition no-print shadow-2xs">
+                                        <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" class="w-full border border-dashed border-cyan-400 bg-white hover:bg-cyan-50 text-cyan-800 rounded py-0.5 text-[9px] font-semibold flex items-center justify-center gap-0.5 transition no-print shadow-2xs cursor-pointer">
                                             <i class="fa-solid fa-plus"></i> Actividad
                                         </button>
                                     ` : ''}
@@ -1769,13 +1850,17 @@
             }
         }
 
-        // CÁLCULO DE TOTALES
+        // CÁLCULO DE TOTALES: HORAS Y SESIONES DE CADA MONITOR
         function calcularTotales() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
 
             const resumenMinutos = {};
-            appData.monitores.forEach(m => resumenMinutos[m] = 0);
+            const resumenSesiones = {};
+            appData.monitores.forEach(m => {
+                resumenMinutos[m] = 0;
+                resumenSesiones[m] = 0;
+            });
 
             (semana.filas || []).forEach(fila => {
                 const horas = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
@@ -1785,6 +1870,7 @@
                         (act.monitores || []).forEach(asig => {
                             if (asig && asig.asiste) {
                                 resumenMinutos[asig.monitor] = (resumenMinutos[asig.monitor] || 0) + (horas * 60);
+                                resumenSesiones[asig.monitor] = (resumenSesiones[asig.monitor] || 0) + 1;
                             }
                         });
                     });
@@ -1794,22 +1880,24 @@
             const contenedor = document.getElementById('resumen-monitores');
             if (!contenedor) return;
 
-            contenedor.innerHTML = Object.entries(resumenMinutos).map(([monitor, minutos]) => {
+            contenedor.innerHTML = Object.entries(resumenMinutos).map(([monitor, minutos], idx) => {
                 const horasDecimal = (minutos / 60).toFixed(2);
                 const hEnteras = Math.floor(minutos / 60);
                 const mRestantes = Math.round(minutos % 60);
+                const numSesiones = resumenSesiones[monitor] || 0;
+                const textoSesiones = numSesiones === 1 ? '1 sesión' : `${numSesiones} ses.`;
                 const colorMonitor = obtenerColorTextoMonitor(monitor);
                 const estaSeleccionado = monitorResaltado && (monitorResaltado.toLowerCase() === monitor.toLowerCase());
 
                 return `
-                    <div onclick="toggleResaltarMonitor('${monitor}')" 
-                        title="${estaSeleccionado ? 'Haz clic para desactivar el resalte' : 'Haz clic para resaltar las clases y horas de ' + monitor}"
+                    <div onclick="toggleResaltarMonitor(appData.monitores[${idx}])" 
+                        title="${estaSeleccionado ? 'Haz clic para desactivar el resalte' : 'Haz clic para resaltar las clases y horas de ' + escapeHtml(monitor)}"
                         class="px-2 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1.5 cursor-pointer transition select-none hover:scale-105 ${estaSeleccionado ? 'total-card-activo' : 'bg-white hover:border-cyan-500'}">
                         
                         <i class="fa-solid fa-highlighter text-xs ${estaSeleccionado ? 'text-amber-700' : 'text-slate-300 hover:text-cyan-700'}"></i>
-                        <span class="nombre-monitor-total font-black text-xs md:text-sm" style="color: ${estaSeleccionado ? '#78350f' : colorMonitor};">${monitor}:</span>
+                        <span class="nombre-monitor-total font-black text-xs md:text-sm" style="color: ${estaSeleccionado ? '#78350f' : colorMonitor};">${escapeHtml(monitor)}:</span>
                         <span class="total-horas-num font-black text-xs md:text-sm text-slate-950">${horasDecimal}h</span>
-                        <span class="text-[9.5px] text-slate-500 font-semibold">(${hEnteras}h ${mRestantes}m)</span>
+                        <span class="text-[9.5px] text-slate-600 font-semibold">(${hEnteras}h ${mRestantes}m · <b>${textoSesiones}</b>)</span>
                         
                         ${estaSeleccionado ? `
                             <span class="text-[9px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Activo</span>
@@ -1819,7 +1907,7 @@
             }).join('');
         }
 
-        // GESTIÓN DE FILAS Y EVENTOS
+        // GESTIÓN DE FILAS
         function agregarFila() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
@@ -1972,10 +2060,10 @@
             badgesCont.innerHTML = appData.monitores.map((m, idx) => {
                 const colorM = obtenerColorTextoMonitor(m);
                 return `
-                    <button type="button" onclick="agregarAlInputAsignar('${m}')" 
-                        class="bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-400 text-slate-700 rounded px-1.5 py-0.5 text-xs transition flex items-center gap-1 shadow-2xs">
+                    <button type="button" onclick="agregarAlInputAsignarPorIndice(${idx})" 
+                        class="bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-400 text-slate-700 rounded px-1.5 py-0.5 text-xs transition flex items-center gap-1 shadow-2xs cursor-pointer">
                         <span class="font-bold text-cyan-800">${idx + 1}.</span> 
-                        <span class="font-extrabold" style="color: ${colorM};">${m}</span>
+                        <span class="font-extrabold" style="color: ${colorM};">${escapeHtml(m)}</span>
                     </button>
                 `;
             }).join('');
@@ -1989,7 +2077,9 @@
             contextoAsignacion = null;
         }
 
-        function agregarAlInputAsignar(nombre) {
+        function agregarAlInputAsignarPorIndice(idx) {
+            const nombre = appData.monitores[idx];
+            if (!nombre) return;
             const input = document.getElementById('input-asignar-monitores');
             const actual = input.value.trim();
             if (!actual) {
@@ -2079,8 +2169,8 @@
                 const colorM = obtenerColorTextoMonitor(m);
                 return `
                     <div class="flex justify-between items-center py-1 px-1">
-                        <span class="text-xs font-black" style="color: ${colorM};">${idx + 1}. ${m}</span>
-                        <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1" title="Eliminar">
+                        <span class="text-xs font-black" style="color: ${colorM};">${idx + 1}. ${escapeHtml(m)}</span>
+                        <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1 cursor-pointer" title="Eliminar">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
@@ -2219,8 +2309,15 @@
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
                 titulo: 'Insertar Eventos a un Clic',
-                descripcion: '¡Nueva herramienta ultra rápida! Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante.',
+                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante.',
                 tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
+            },
+            {
+                targetId: 'tour-nuevo',
+                icono: 'fa-calendar-plus',
+                titulo: 'Calendario en Blanco',
+                descripcion: 'Crea un nuevo calendario desde cero con todas las franjas horarias de 1 hora completas desde las 09:00 hasta las 23:00.',
+                tip: 'Ahorra tiempo generando automáticamente todo el esqueleto del día.'
             },
             {
                 targetId: 'tour-semanas',
@@ -2247,7 +2344,7 @@
                 targetId: 'tour-imprimir',
                 icono: 'fa-print',
                 titulo: 'Imprimir o Guardar en PDF',
-                descripcion: 'Prepara el cuadrante en formato horizontal A4. Las cabeceras de días y los totales se adaptan con la máxima claridad.',
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has marcado un monitor o una actividad, sus horas y el número de sesiones saldrán destacados en la cabecera impresa.',
                 tip: 'Elige la opción "Guardar como PDF" en tu navegador para generar copias digitales.'
             },
             {
@@ -2275,8 +2372,8 @@
                 targetId: 'tour-totales-pie',
                 icono: 'fa-highlighter',
                 titulo: 'Resaltar Empleado y Total de Horas',
-                descripcion: '¡Haz clic sobre cualquier monitor del pie para resaltar todas sus clases y horas en el calendario! Las casillas se iluminarán en amarillo y mostrarán sus horas exactas.',
-                tip: 'El pie permanece siempre visible al hacer scroll vertical.'
+                descripcion: '¡Haz clic sobre cualquier monitor del pie para resaltar todas sus clases y horas en el calendario! Las casillas se iluminarán en amarillo.',
+                tip: 'El pie permanece siempre visible al hacer scroll vertical y muestra también el número de sesiones de cada monitor.'
             }
         ];
 
