@@ -94,7 +94,7 @@
             outline-offset: -2px;
         }
 
-        /* DESTELLO DE INSERCIÓN EXITOSA (CONFIRMACIÓN SIN MOVER CURSOR) */
+        /* DESTELLO DE INSERCIÓN/MODIFICACIÓN EXITOSA (CONFIRMACIÓN SIN MOVER CURSOR) */
         @keyframes flashInsercion {
             0% { background-color: #bbf7d0 !important; outline: 3px solid #16a34a !important; }
             50% { background-color: #dcfce7 !important; outline: 2px solid #22c55e !important; }
@@ -420,7 +420,7 @@
                 <h1 class="text-sm md:text-base font-black text-cyan-950 flex items-center gap-1.5">
                     <i class="fa-solid fa-person-swimming text-cyan-600"></i> ACTIVIDADES DIRIGIDAS - CONTROL DE HORAS
                 </h1>
-                <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir rápidamente.</p>
+                <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir o modificar rápidamente.</p>
             </div>
 
             <!-- BOTONES DE MODO RÁPIDO Y VISTA COMPLETA -->
@@ -467,7 +467,7 @@
             </div>
         </div>
 
-        <!-- PANEL DE INSERCIÓN RÁPIDA A UN CLIC -->
+        <!-- PANEL DE INSERCIÓN Y MODIFICACIÓN RÁPIDA A UN CLIC -->
         <div id="panel-modo-rapido" class="hidden no-print bg-slate-900 border-2 border-amber-400 text-white p-3 rounded-2xl shadow-xl space-y-2.5 transition-all">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
                 <div class="flex items-center gap-2">
@@ -475,7 +475,7 @@
                         <i class="fa-solid fa-bolt-lightning"></i> Modo Rápido Activo
                     </span>
                     <span class="text-xs text-amber-200 font-medium">
-                        Selecciona elementos abajo y haz clic en cualquier cuadrícula para agregarlos directamente.
+                        Inserta nuevos eventos o modifica rápidamente los ya existentes en el calendario.
                     </span>
                 </div>
                 <button onclick="toggleModoRapido(false)" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-1 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer">
@@ -483,17 +483,24 @@
                 </button>
             </div>
 
-            <!-- GUÍA / AYUDA RÁPIDA -->
-            <div class="bg-slate-800/80 border border-slate-700 p-2 rounded-xl text-[11px] text-slate-300 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-cyan-400 text-sm"></i>
-                    <span>
-                        <b>Pasos:</b> <b>1)</b> Marca una o varias <i>Actividades</i>. <b>2)</b> Marca uno o varios <i>Monitores</i>. <b>3)</b> Marca una <i>Sala</i>. <b>4)</b> Haz clic sobre las casillas del calendario donde quieras colocarlas. ¡No perderás de vista dónde estás insertando!
-                    </span>
+            <!-- GUÍA Y NOTA EXPLICATIVA DE MODOS: INSERCIÓN VS MODIFICACIÓN -->
+            <div class="bg-slate-800/90 border border-slate-700 p-2.5 rounded-xl text-[11px] text-slate-300 space-y-1.5">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-700/60 pb-1.5">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-cyan-400 text-sm"></i>
+                        <span class="font-bold text-slate-200">Guía de Inserción y Modificación a un Clic:</span>
+                    </div>
+                    <div id="badge-modo-operacion" class="font-black text-[10.5px]"></div>
                 </div>
-                <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs truncate">
-                    Listo para insertar: Sin actividad
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10.5px] leading-tight">
+                    <p class="bg-slate-700/50 p-1.5 rounded border border-slate-600">
+                        <b class="text-emerald-400"><i class="fa-solid fa-plus-circle"></i> Para INSERTAR clase nueva:</b> Marca al menos 1 <u>Actividad</u>, 1 <u>Monitor</u> y 1 <u>Sala</u>. Luego haz clic en la casilla deseada.
+                    </p>
+                    <p class="bg-amber-950/40 p-1.5 rounded border border-amber-500/40 text-amber-200">
+                        <b class="text-amber-400"><i class="fa-solid fa-pen"></i> Para MODIFICAR clases ya introducidas:</b> Si NO marcas los 3 elementos (ej: marcas solo Monitor, solo Sala o solo Actividad), al hacer clic sobre cualquier clase existente se <u>modificará únicamente ese dato</u> respetando los demás.
+                    </p>
                 </div>
+                <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs pt-1 border-t border-slate-700/50"></div>
             </div>
 
             <!-- LAS 3 COLUMNAS: ACTIVIDADES, MONITORES Y SALAS -->
@@ -554,7 +561,7 @@
 
     </div>
 
-    <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA (CON CAMPO PARA MODELO CONFIGURABLE) -->
+    <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA -->
     <div id="modal-ia-import" class="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-5 space-y-3.5 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -587,7 +594,6 @@
             <!-- CONFIGURACIÓN API Y NOMBRE DEL MODELO (POR DEFECTO: gemini-3.1-pro-preview) -->
             <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    <!-- CAMPO CLAVE API -->
                     <div class="space-y-1">
                         <div class="flex justify-between items-center">
                             <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
@@ -601,7 +607,6 @@
                             class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
                     </div>
 
-                    <!-- CAMPO NOMBRE DEL MODELO (CONFIGURABLE) -->
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
                             <i class="fa-solid fa-microchip text-purple-600"></i> Modelo de IA:
@@ -1322,11 +1327,9 @@
                 return;
             }
 
-            // Guardar configuración en localStorage
             localStorage.setItem('GEMINI_API_KEY', apiKey);
             localStorage.setItem('GEMINI_MODEL', modelo);
 
-            // Mostrar estado de carga
             const estadoCarga = document.getElementById('estado-carga-ia');
             const btnEjecutar = document.getElementById('btn-ejecutar-ia');
             estadoCarga.classList.remove('hidden');
@@ -1400,7 +1403,6 @@
                     throw new Error('La IA no devolvió ningún contenido legible.');
                 }
 
-                // Extracción limpia del JSON entre la primera y la última llave
                 let jsonLimpio = textoGenerado.trim();
                 const firstBrace = jsonLimpio.indexOf('{');
                 const lastBrace = jsonLimpio.lastIndexOf('}');
@@ -1414,7 +1416,6 @@
                     throw new Error('El formato extraído no coincide con la estructura requerida.');
                 }
 
-                // Formatear e incorporar el nuevo calendario a appData
                 const nuevoCalendario = {
                     id: 'sem_ia_' + Date.now(),
                     rango: (objetoImportado.rango || 'Horario Importado con IA').toUpperCase(),
@@ -1616,7 +1617,7 @@
         }
 
         // ==========================================================
-        // --- CONTROL DEL MODO INSERCIÓN RÁPIDA A UN CLIC ---
+        // --- CONTROL DEL MODO INSERCIÓN Y MODIFICACIÓN RÁPIDA ---
         // ==========================================================
         function toggleModoRapido(forzarEstado = null) {
             if (forzarEstado !== null) {
@@ -1707,13 +1708,40 @@
                 `;
             }).join('');
 
-            // 4. Actualizar Resumen de Selección
+            // ACTUALIZAR BADGE DE MODO Y TEXTO DE RESUMEN
+            const tieneActividad = seleccionRapida.actividades.length > 0;
+            const tieneMonitor = seleccionRapida.monitores.length > 0;
+            const tieneSala = !!seleccionRapida.sala;
+            const esModoCreacionCompleta = tieneActividad && tieneMonitor && tieneSala;
+            const tieneAlgunaSeleccion = tieneActividad || tieneMonitor || tieneSala;
+
+            const badgeModo = document.getElementById('badge-modo-operacion');
+            if (badgeModo) {
+                if (esModoCreacionCompleta) {
+                    badgeModo.innerHTML = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500 px-2 py-0.5 rounded uppercase flex items-center gap-1"><i class="fa-solid fa-circle-plus"></i> Modo: Inserción Nueva</span>`;
+                } else if (tieneAlgunaSeleccion) {
+                    badgeModo.innerHTML = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500 px-2 py-0.5 rounded uppercase flex items-center gap-1"><i class="fa-solid fa-pen-to-square"></i> Modo: Modificación Rápida</span>`;
+                } else {
+                    badgeModo.innerHTML = `<span class="text-slate-400 font-normal">Sin selección</span>`;
+                }
+            }
+
             const res = document.getElementById('resumen-seleccion-rapida');
             const strAct = seleccionRapida.actividades.length ? escapeHtml(seleccionRapida.actividades.join(' + ')) : '<span class="text-slate-400">Sin actividad</span>';
             const strMon = seleccionRapida.monitores.length ? escapeHtml(seleccionRapida.monitores.join(', ')) : '<span class="text-slate-400">Sin monitor</span>';
             const strSal = seleccionRapida.sala ? `[${escapeHtml(seleccionRapida.sala)}]` : '<span class="text-slate-400">[Sin sala]</span>';
 
-            res.innerHTML = `Listo para insertar: <b>${strAct}</b> con <b>${strMon}</b> en <b>${strSal}</b>`;
+            if (esModoCreacionCompleta) {
+                res.innerHTML = `Listo para <b>INSERTAR NUEVA CLASE</b>: <b>${strAct}</b> con <b>${strMon}</b> en <b>${strSal}</b>`;
+            } else if (tieneAlgunaSeleccion) {
+                let datosAfectados = [];
+                if (tieneActividad) datosAfectados.push(`Actividad (${strAct})`);
+                if (tieneMonitor) datosAfectados.push(`Monitor (${strMon})`);
+                if (tieneSala) datosAfectados.push(`Sala (${strSal})`);
+                res.innerHTML = `Listo para <b>MODIFICAR CLASES EXISTENTES</b>: Se actualizará ${datosAfectados.join(' y ')} al pulsar sobre cualquier clase existente.`;
+            } else {
+                res.innerHTML = `Selecciona al menos un elemento para comenzar.`;
+            }
         }
 
         function toggleSeleccionRapidaPorIndice(tipo, indice) {
@@ -1830,12 +1858,64 @@
             }
         }
 
-        // INSERCIÓN RÁPIDA: PRESERVA EL FOCO Y SCROLL EXACTO SIN SUBIR LA PANTALLA
+        // MODIFICAR UNA CLASE EXISTENTE CON LOS DATOS SELECCIONADOS
+        function modificarActividadExistente(fIndex, dia, actIndex) {
+            const semana = obtenerSemanaActiva();
+            if (!semana || !semana.filas[fIndex]) return;
+            const lista = semana.filas[fIndex].dias[dia];
+            if (!lista || !lista[actIndex]) return;
+
+            const act = lista[actIndex];
+            const tieneActividad = seleccionRapida.actividades.length > 0;
+            const tieneMonitor = seleccionRapida.monitores.length > 0;
+            const tieneSala = !!seleccionRapida.sala;
+
+            if (!tieneActividad && !tieneMonitor && !tieneSala) {
+                alert('Selecciona en el panel superior el dato que deseas modificar (Actividad, Monitor o Sala).');
+                return;
+            }
+
+            if (tieneActividad) {
+                act.actividad = seleccionRapida.actividades[0];
+            }
+            if (tieneMonitor) {
+                act.monitores = seleccionRapida.monitores.map(m => ({ monitor: m, asiste: true }));
+            }
+            if (tieneSala) {
+                act.sala = seleccionRapida.sala;
+            }
+
+            guardar();
+            render(`celda_${fIndex}_${dia}`);
+        }
+
+        // CLIC EN LA TARJETA EN MODO RÁPIDO: MODIFICA ESA CLASE CONCRETA
+        function manejarClicCardModoRapido(e, fIndex, dia, actIndex) {
+            if (!modoRapidoActivo) return;
+
+            const tieneActividad = seleccionRapida.actividades.length > 0;
+            const tieneMonitor = seleccionRapida.monitores.length > 0;
+            const tieneSala = !!seleccionRapida.sala;
+            const esModoCreacionCompleta = tieneActividad && tieneMonitor && tieneSala;
+
+            if (!esModoCreacionCompleta) {
+                e.stopPropagation();
+                modificarActividadExistente(fIndex, dia, actIndex);
+            }
+        }
+
+        // CLIC EN LA CASILLA: CREA CLASE O MODIFICA LAS EXISTENTES
         function ejecutarInsercionRapidaEnCelda(fIndex, dia) {
             if (!modoRapidoActivo) return;
 
-            if (seleccionRapida.actividades.length === 0) {
-                alert('Por favor selecciona al menos una Actividad en el panel superior antes de hacer clic en la casilla.');
+            const tieneActividad = seleccionRapida.actividades.length > 0;
+            const tieneMonitor = seleccionRapida.monitores.length > 0;
+            const tieneSala = !!seleccionRapida.sala;
+            const esModoCreacionCompleta = tieneActividad && tieneMonitor && tieneSala;
+            const tieneAlgunaSeleccion = tieneActividad || tieneMonitor || tieneSala;
+
+            if (!tieneAlgunaSeleccion) {
+                alert('Por favor selecciona al menos un dato (Actividad, Monitor o Sala) en el panel superior.');
                 return;
             }
 
@@ -1845,7 +1925,34 @@
             if (!semana.filas[fIndex].dias[dia]) {
                 semana.filas[fIndex].dias[dia] = [];
             }
+            const actividadesExistentes = semana.filas[fIndex].dias[dia];
 
+            // SI NO ESTÁN LOS 3 ELEMENTOS: ES MODO MODIFICACIÓN
+            if (!esModoCreacionCompleta) {
+                if (actividadesExistentes.length === 0) {
+                    alert('Esta casilla está vacía. Para crear una clase nueva completa, selecciona al menos una Actividad, un Monitor y una Sala en el panel superior.');
+                    return;
+                }
+
+                // Modifica las actividades que ya existen en esta casilla
+                actividadesExistentes.forEach((act) => {
+                    if (tieneActividad) {
+                        act.actividad = seleccionRapida.actividades[0];
+                    }
+                    if (tieneMonitor) {
+                        act.monitores = seleccionRapida.monitores.map(mon => ({ monitor: mon, asiste: true }));
+                    }
+                    if (tieneSala) {
+                        act.sala = seleccionRapida.sala;
+                    }
+                });
+
+                guardar();
+                render(`celda_${fIndex}_${dia}`);
+                return;
+            }
+
+            // SI ESTÁN LOS 3 ELEMENTOS: ES MODO CREACIÓN COMPLETA
             seleccionRapida.actividades.forEach(actNombre => {
                 const monitoresConfigurados = seleccionRapida.monitores.map(mon => ({
                     monitor: mon,
@@ -2307,6 +2414,7 @@
                                     <div class="act-card bg-transparent p-1 rounded border border-slate-400/80 shadow-2xs mb-1 space-y-0.5 transition-all ${claseResaltado}" 
                                         ${esPrimeraCelda ? 'id="tour-actividad-card"' : ''}
                                         draggable="${!modoRapidoActivo}"
+                                        onclick="manejarClicCardModoRapido(event, ${fIndex}, '${dia}', ${actIndex})"
                                         ondragstart="manejarDragStart(event, ${fIndex}, '${dia}', ${actIndex})"
                                         ondragend="manejarDragEnd(event)"
                                         ondrop="manejarDrop(event, ${fIndex}, '${dia}', ${actIndex})">
@@ -2318,7 +2426,7 @@
                                             </span>
 
                                             <input type="text" value="${escapeHtml(act.actividad || '')}" placeholder="Actividad..." 
-                                                onclick="event.stopPropagation()"
+                                                onclick="${modoRapidoActivo ? `manejarClicCardModoRapido(event, ${fIndex}, '${dia}', ${actIndex})` : 'event.stopPropagation()'}"
                                                 onfocus="manejarFocoActividad(this)"
                                                 oninput="manejarInputActividad(this)"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'actividad', this.value)" 
@@ -2332,7 +2440,7 @@
                                             ` : ''}
 
                                             <input type="text" value="${escapeHtml(act.sala || '')}" placeholder="Sal" maxlength="4"
-                                                onclick="event.stopPropagation()"
+                                                onclick="${modoRapidoActivo ? `manejarClicCardModoRapido(event, ${fIndex}, '${dia}', ${actIndex})` : 'event.stopPropagation()'}"
                                                 onchange="actualizarActividadInfo(${fIndex}, '${dia}', ${actIndex}, 'sala', this.value)" 
                                                 class="w-8 text-[9px] text-slate-700 uppercase font-bold text-center placeholder-slate-300 outline-none border border-slate-400/60 rounded px-0.5 shrink-0 bg-white/40" title="Sala / Vaso">
                                             
@@ -2354,7 +2462,7 @@
                             }).join('');
 
                             const clickCeldaHandler = modoRapidoActivo ? `onclick="ejecutarInsercionRapidaEnCelda(${fIndex}, '${dia}')"` : '';
-                            const tooltipCelda = modoRapidoActivo ? 'title="Haz clic aquí para añadir la selección rápida a este tramo"' : '';
+                            const tooltipCelda = modoRapidoActivo ? 'title="Haz clic aquí para añadir o modificar clases con la selección rápida actual"' : '';
 
                             return `
                                 <td data-celda-id="${celdaId}" class="celda-dia-drop p-1 border border-slate-300 align-top transition-all"
@@ -2405,7 +2513,7 @@
                 }
                 window.scrollTo(window.scrollX, prevWindowY);
 
-                // DESTELLO VISUAL EN LA CELDA DONDE SE INSERTÓ EL EVENTO
+                // DESTELLO VISUAL EN LA CELDA MODIFICADA/INSERTADA
                 if (celdaDestacada) {
                     const elCelda = document.querySelector(`[data-celda-id="${celdaDestacada}"]`);
                     if (elCelda) {
@@ -2878,9 +2986,9 @@
             {
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
-                titulo: 'Insertar Eventos a un Clic',
-                descripcion: 'Abre el panel superior de 3 columnas para elegir actividades, monitores y sala. Luego pincha en cualquier casilla del calendario para insertarlas al instante sin que la pantalla salte.',
-                tip: 'El proceso permanece abierto para que puedas rellenar múltiples días y horas seguidas. Pulsa "Finalizar" para guardar.'
+                titulo: 'Insertar o Modificar a un Clic',
+                descripcion: 'Herramienta de doble función: Si seleccionas Actividad, Monitor y Sala, creará clases nuevas completas. Si seleccionas solo uno o dos datos (ej. solo Monitor o solo Sala), al pulsar sobre cualquier clase existente modificará únicamente ese dato sin alterar el resto.',
+                tip: 'El proceso permanece abierto para que puedas actualizar o rellenar múltiples clases seguidas. Pulsa "Finalizar" para guardar.'
             },
             {
                 targetId: 'tour-ia-import',
