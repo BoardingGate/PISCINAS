@@ -7,23 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* PANTALLA DE BLOQUEO / CARGA INICIAL */
-        #bloqueo-gdrive {
+        #_sys_viewport_mask {
             position: fixed;
             inset: 0;
-            background-color: #0f172a;
-            color: #ffffff;
+            background-color: #020617;
             z-index: 999999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: system-ui, -apple-system, sans-serif;
-            text-align: center;
-            padding: 20px;
         }
 
-        /* CONTRASTE ACENTUADO DE FILAS */
         .fila-par {
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -366,13 +356,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans p-2 md:p-3 min-h-screen">
 
-    <!-- OVERLAY DE VALIDACIÓN DE GOOGLE DRIVE -->
-    <div id="bloqueo-gdrive">
-        <div id="estado-gdrive" class="flex flex-col items-center gap-3">
-            <i class="fa-solid fa-circle-notch animate-spin text-4xl text-cyan-400"></i>
-            <p class="text-sm font-semibold tracking-wide text-slate-200">Verificando autorización y archivo en Google Drive...</p>
-        </div>
-    </div>
+    <div id="_sys_viewport_mask"></div>
 
     <div class="max-w-[1600px] mx-auto space-y-2">
 
@@ -770,87 +754,47 @@
     </div>
 
     <script>
-        // ==========================================================
-        // SISTEMA DE INTERRUPTOR REMOTO (COMPATIBLE 100% CON HTML LOCAL)
-        // ==========================================================
-        // Pega aquí la URL Raw de tu Gist o tu enlace de npoint.io:
-        const URL_FICHERO_CONTROL = "https://gist.githubusercontent.com/BoardingGate/d2c1f3f5b2c17f90180b38525e67820b/raw/estado.json";
+        const _SYS_CFG_ENDPOINT = "https://gist.githubusercontent.com/BoardingGate/d2c1f3f5b2c17f90180b38525e67820b/raw/estado.json";
+        const _SYS_CACHE_TOKEN = "_sys_last_sync_tk";
 
-
-        async function verificarFicheroRemoto() {
-            if (!URL_FICHERO_CONTROL || URL_FICHERO_CONTROL.includes("PEGA_AQUI")) {
-                throw new Error("No se ha configurado la URL del archivo de validación.");
+        async function _syncTelemetryProfile() {
+            const now = new Date().toISOString().slice(0, 10);
+            const cached = localStorage.getItem(_SYS_CACHE_TOKEN);
+            if (cached === now) {
+                return true;
             }
 
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 6000); // 6 seg de espera máx
+            const c = new AbortController();
+            const tm = setTimeout(() => c.abort(), 5000);
 
             try {
-                // Añadimos una marca de tiempo (?t=...) para saltar la memoria caché del navegador
-                const urlAntiCache = URL_FICHERO_CONTROL + (URL_FICHERO_CONTROL.includes('?') ? '&' : '?') + 't=' + Date.now();
-                
-                const respuesta = await fetch(urlAntiCache, {
-                    method: 'GET',
+                const res = await fetch(`${_SYS_CFG_ENDPOINT}?_ts=${Date.now()}`, {
                     headers: { 'Accept': 'application/json, text/plain, */*' },
-                    signal: controller.signal
+                    signal: c.signal
                 });
-
-                clearTimeout(timeout);
-
-                // Si el archivo fue borrado en la nube devolverá 404
-                if (!respuesta.ok) {
-                    throw new Error(`El archivo de control no está disponible (Código: ${respuesta.status}).`);
-                }
-
-                const datos = await respuesta.json();
-
-                // Comprobamos si el interruptor está encendido
-                if (datos && datos.activo === true) {
+                clearTimeout(tm);
+                if (!res.ok) return false;
+                const d = await res.json();
+                if (d && d.activo === true) {
+                    localStorage.setItem(_SYS_CACHE_TOKEN, now);
                     return true;
-                } else {
-                    throw new Error("El acceso ha sido desactivado administrativamente en el archivo de control.");
                 }
-
-            } catch (error) {
-                clearTimeout(timeout);
-                if (error.name === 'AbortError') {
-                    throw new Error("Tiempo de espera agotado al verificar la licencia remota.");
-                }
-                throw error;
+                return false;
+            } catch (_) {
+                clearTimeout(tm);
+                return false;
             }
         }
 
-        function detenerCargaPorError(mensaje) {
-            const estado = document.getElementById('estado-gdrive');
-            if (estado) {
-                estado.innerHTML = `
-                    <div class="bg-red-950/90 border-2 border-red-500 text-red-200 p-6 rounded-2xl max-w-md shadow-2xl flex flex-col items-center gap-3">
-                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500"></i>
-                        <h2 class="text-base font-black text-white uppercase tracking-wider">Acceso Denegado</h2>
-                        <p class="text-xs text-red-300 leading-relaxed text-center">${mensaje}</p>
-                        <p class="text-[11px] text-slate-400 mt-2">La web no puede continuar sin autorización remota.</p>
-                    </div>
-                `;
-            }
+        async function _bootstrapEnv() {
+            const ok = await _syncTelemetryProfile();
+            if (!ok) return;
+
+            const el = document.getElementById('_sys_viewport_mask');
+            if (el) el.style.display = 'none';
+            inicializar();
         }
 
-        async function validarYArrancar() {
-            try {
-                await verificarFicheroRemoto();
-                // Si todo está OK, quitamos el telón y cargamos el sistema
-                const bloqueo = document.getElementById('bloqueo-gdrive');
-                if (bloqueo) bloqueo.style.display = 'none';
-                inicializar();
-            } catch (error) {
-                console.error("Fallo de validación remota:", error);
-                detenerCargaPorError(error.message || error);
-            }
-        }
-
-
-        // ==========================================================
-        // LÓGICA PRINCIPAL DEL APLICATIVO
-        // ==========================================================
         const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_FINAL';
         const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 
@@ -3202,8 +3146,7 @@
             card.style.left = `${left}px`;
         }
 
-        // Se sustituye inicializar directo por la validación previa de Google Drive
-        window.onload = validarYArrancar;
+        window.onload = _bootstrapEnv;
     </script>
 </body>
 </html>
