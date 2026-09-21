@@ -141,6 +141,32 @@
             filter: grayscale(35%);
         }
 
+        /* RESALTE DE DÍA O FILA FILTRADA */
+        .dia-columna-filtrada {
+            background-color: #fef9c3 !important; /* Yellow 100 */
+            border-left: 2px solid #eab308 !important;
+            border-right: 2px solid #eab308 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .dia-th-filtrado {
+            background-color: #713f12 !important; /* Yellow 900 */
+            color: #fef08a !important;
+            border-color: #eab308 !important;
+        }
+        .fila-filtrada {
+            background-color: #fef9c3 !important; /* Yellow 100 */
+            outline: 2px solid #eab308 !important;
+            outline-offset: -2px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .modo-filtro-dia-activo .celda-dia-drop:not(.dia-columna-filtrada),
+        .modo-filtro-fila-activo tr:not(.fila-filtrada) {
+            opacity: 0.35 !important;
+            filter: grayscale(70%) !important;
+        }
+
         /* EFECTO VISUAL DE DESTINO AL ARRASTRAR ACTIVIDADES (DRAG & DROP) */
         .celda-drop-activa {
             background-color: #cffafe !important;
@@ -303,12 +329,14 @@
             }
 
             #badge-filtro-monitor.hidden,
-            #badge-filtro-actividad.hidden {
+            #badge-filtro-actividad.hidden,
+            #badge-filtro-contexto.hidden {
                 display: none !important;
             }
 
             #badge-filtro-monitor:not(.hidden),
-            #badge-filtro-actividad:not(.hidden) {
+            #badge-filtro-actividad:not(.hidden),
+            #badge-filtro-contexto:not(.hidden) {
                 display: inline-flex !important;
                 border: 2.5px solid #92400e !important;
                 background-color: #fef08a !important;
@@ -320,19 +348,22 @@
                 print-color-adjust: exact !important;
             }
             #badge-filtro-monitor i,
-            #badge-filtro-actividad i {
+            #badge-filtro-actividad i,
+            #badge-filtro-contexto i {
                 font-size: 14px !important;
                 color: #b45309 !important;
             }
             #badge-filtro-monitor .texto-filtro-label,
-            #badge-filtro-actividad .texto-filtro-label {
+            #badge-filtro-actividad .texto-filtro-label,
+            #badge-filtro-contexto .texto-filtro-label {
                 font-size: 14px !important;
                 font-weight: 900 !important;
                 color: #78350f !important;
                 text-transform: uppercase !important;
             }
             #badge-filtro-monitor strong,
-            #badge-filtro-actividad strong {
+            #badge-filtro-actividad strong,
+            #badge-filtro-contexto strong {
                 font-size: 15px !important;
                 font-weight: 900 !important;
                 color: #000000 !important;
@@ -340,7 +371,8 @@
                 letter-spacing: 0.5px !important;
             }
             #badge-filtro-monitor .horas-filtro-total,
-            #badge-filtro-actividad .horas-filtro-total {
+            #badge-filtro-actividad .horas-filtro-total,
+            #badge-filtro-contexto .horas-filtro-total {
                 font-size: 14px !important;
                 font-weight: 900 !important;
                 color: #92400e !important;
@@ -447,6 +479,17 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
+                <!-- CHIP DE FILTRO DÍA O TRAMO HORARIO -->
+                <div id="badge-filtro-contexto" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-500 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
+                    <i id="icono-filtro-contexto" class="fa-solid fa-calendar-day text-amber-700 text-sm md:text-base"></i>
+                    <span id="label-filtro-contexto" class="texto-filtro-label">Filtro:</span>
+                    <strong id="nombre-filtro-contexto" class="font-black text-amber-950 text-sm md:text-base tracking-wide"></strong>
+                    <span id="horas-filtro-contexto" class="horas-filtro-total font-black text-amber-800 text-xs md:text-sm"></span>
+                    <button onclick="limpiarFiltroContexto()" title="Quitar este filtro" class="ml-1.5 text-amber-700 hover:text-red-700 no-print transition text-sm cursor-pointer">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+
                 <!-- CHIP DE RESALTE ACTIVO DE EMPLEADO -->
                 <div id="badge-filtro-monitor" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
                     <i class="fa-solid fa-user-check text-amber-700 text-sm md:text-base"></i>
@@ -934,6 +977,8 @@
         let contextoAsignacion = null;
         let monitorResaltado = null;
         let actividadResaltada = null;
+        let diaFiltrado = null;        // NUEVO: 'lunes', 'martes', etc.
+        let filaFiltradaIndex = null;  // NUEVO: índice numérico de la fila
         let draggedActivity = null;
 
         function calcularDuracionHoras(inicio, fin) {
@@ -1518,7 +1563,7 @@
         }
 
         function sincronizarVistaSegunResalte() {
-            const hayResalteActivo = !!(monitorResaltado || actividadResaltada);
+            const hayResalteActivo = !!(monitorResaltado || actividadResaltada || diaFiltrado || filaFiltradaIndex !== null);
             if (hayResalteActivo) {
                 setVistaCompleta(true);
             } else {
@@ -1920,7 +1965,7 @@
         }
 
         // ==========================================================
-        // --- CONTROL DEL RESALTE DE EMPLEADO Y ACTIVIDAD ---
+        // --- CONTROL DEL RESALTE Y FILTRADO (DÍA / TRAMO / EMPLEADO) ---
         // ==========================================================
         function toggleResaltarMonitor(nombre) {
             if (monitorResaltado === nombre || !nombre) {
@@ -1928,6 +1973,37 @@
             } else {
                 monitorResaltado = nombre;
             }
+            sincronizarVistaSegunResalte();
+            render();
+        }
+
+        // NUEVO: FILTRO POR DÍA DE LA SEMANA
+        function toggleFiltroDia(dia) {
+            if (diaFiltrado === dia) {
+                diaFiltrado = null;
+            } else {
+                diaFiltrado = dia;
+                filaFiltradaIndex = null; // Excluyente con filtro de tramo
+            }
+            sincronizarVistaSegunResalte();
+            render();
+        }
+
+        // NUEVO: FILTRO POR FRANJA HORARIA
+        function toggleFiltroFila(fIndex) {
+            if (filaFiltradaIndex === fIndex) {
+                filaFiltradaIndex = null;
+            } else {
+                filaFiltradaIndex = fIndex;
+                diaFiltrado = null; // Excluyente con filtro de día
+            }
+            sincronizarVistaSegunResalte();
+            render();
+        }
+
+        function limpiarFiltroContexto() {
+            diaFiltrado = null;
+            filaFiltradaIndex = null;
             sincronizarVistaSegunResalte();
             render();
         }
@@ -2149,6 +2225,31 @@
                 const inpRango = document.getElementById('semana-rango');
                 if (inpRango) inpRango.value = semana.rango || '';
 
+                // CHIP DE FILTRO CONTEXTUAL (DÍA O TRAMO)
+                const badgeContexto = document.getElementById('badge-filtro-contexto');
+                const iconoContexto = document.getElementById('icono-filtro-contexto');
+                const labelContexto = document.getElementById('label-filtro-contexto');
+                const nombreContexto = document.getElementById('nombre-filtro-contexto');
+                const horasContexto = document.getElementById('horas-filtro-contexto');
+
+                if (badgeContexto) {
+                    if (diaFiltrado) {
+                        badgeContexto.classList.remove('hidden');
+                        iconoContexto.className = 'fa-solid fa-calendar-day text-amber-700 text-sm md:text-base';
+                        labelContexto.textContent = 'Día:';
+                        nombreContexto.textContent = diaFiltrado.toUpperCase();
+                        horasContexto.textContent = '';
+                    } else if (filaFiltradaIndex !== null && semana.filas[filaFiltradaIndex]) {
+                        badgeContexto.classList.remove('hidden');
+                        iconoContexto.className = 'fa-solid fa-clock text-amber-700 text-sm md:text-base';
+                        labelContexto.textContent = 'Tramo:';
+                        nombreContexto.textContent = `${semana.filas[filaFiltradaIndex].horaInicio} - ${semana.filas[filaFiltradaIndex].horaFin}`;
+                        horasContexto.textContent = '';
+                    } else {
+                        badgeContexto.classList.add('hidden');
+                    }
+                }
+
                 let totalHorasMonitor = 0;
                 let totalSesionesMonitor = 0;
                 if (monitorResaltado) {
@@ -2215,9 +2316,29 @@
 
                 const claseModoResalte = (monitorResaltado || actividadResaltada) ? 'modo-resalte-activo' : '';
                 const claseModoRapidoGrid = modoRapidoActivo ? 'modo-rapido-activo-grid' : '';
+                const claseModoDia = diaFiltrado ? 'modo-filtro-dia-activo' : '';
+                const claseModoFila = (filaFiltradaIndex !== null) ? 'modo-filtro-fila-activo' : '';
+
+                // CABECERA DE DÍAS CON BOTÓN DE OJO / FILTRADO
+                const thDiasHtml = DIAS.map(d => {
+                    const diaNombre = d.charAt(0).toUpperCase() + d.slice(1);
+                    const estaFiltrado = (diaFiltrado === d);
+                    return `
+                        <th class="p-1.5 border border-slate-700 text-center w-[14%] ${estaFiltrado ? 'dia-th-filtrado' : ''}">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span>${diaNombre}</span>
+                                <button type="button" onclick="toggleFiltroDia('${d}')" 
+                                    title="${estaFiltrado ? 'Quitar filtro de ' + diaNombre : 'Filtrar y ver horas de ' + diaNombre}" 
+                                    class="no-print p-1 rounded-md transition cursor-pointer ${estaFiltrado ? 'bg-amber-400 text-slate-950 font-black ring-1 ring-amber-300' : 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800'}">
+                                    <i class="fa-solid ${estaFiltrado ? 'fa-eye text-slate-950' : 'fa-filter text-[10px]'}"></i>
+                                </button>
+                            </div>
+                        </th>
+                    `;
+                }).join('');
 
                 let htmlTabla = `
-                    <div class="tabla-contenedor-scroll bg-white rounded-xl shadow-sm border border-slate-300 ${claseModoResalte} ${claseModoRapidoGrid}">
+                    <div class="tabla-contenedor-scroll bg-white rounded-xl shadow-sm border border-slate-300 ${claseModoResalte} ${claseModoRapidoGrid} ${claseModoDia} ${claseModoFila}">
                         <table class="w-full border-collapse print-table text-left min-w-[1180px] table-fixed">
                             <thead>
                                 <tr class="bg-slate-950 text-white text-[10.5px] uppercase">
@@ -2232,12 +2353,7 @@
                                             </button>
                                         </div>
                                     </th>
-                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Lunes</th>
-                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Martes</th>
-                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Miércoles</th>
-                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Jueves</th>
-                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Viernes</th>
-                                    <th class="p-1.5 border border-slate-700 text-center w-[14%]">Sábado</th>
+                                    ${thDiasHtml}
                                 </tr>
                             </thead>
                             <tbody id="tabla-cuerpo" class="divide-y divide-slate-300 text-xs">
@@ -2255,7 +2371,8 @@
                     semana.filas.forEach((fila, fIndex) => {
                         const horasSlot = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
                         const esImpar = fIndex % 2 !== 0;
-                        const claseFila = esImpar ? 'fila-impar' : 'fila-par';
+                        const esFilaFiltrada = (filaFiltradaIndex === fIndex);
+                        const claseFila = esFilaFiltrada ? 'fila-filtrada' : (esImpar ? 'fila-impar' : 'fila-par');
 
                         let tdAccion = `
                             <td class="p-0.5 border border-slate-300 text-center align-middle no-print" ${fIndex === 0 ? 'id="tour-control-fila"' : ''}>
@@ -2277,15 +2394,23 @@
                         `;
 
                         let tdHorario = `
-                            <td class="celda-horario p-1 border border-slate-300 text-center align-top font-sans" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
+                            <td class="celda-horario p-1 border border-slate-300 text-center align-top font-sans relative" ${fIndex === 0 ? 'id="tour-horario-slot"' : ''}>
                                 <div class="flex flex-col items-center space-y-0.5">
                                     <input type="time" value="${fila.horaInicio || '09:00'}" onchange="actualizarHorario(${fIndex}, 'horaInicio', this.value)" 
                                         class="border border-slate-300 rounded px-1.5 py-0.5 font-black text-xs text-slate-900 bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
                                     <div class="hora-conector text-[9px] text-slate-600 font-black uppercase">a</div>
                                     <input type="time" value="${fila.horaFin || '10:00'}" onchange="actualizarHorario(${fIndex}, 'horaFin', this.value)" 
                                         class="border border-slate-300 rounded px-1.5 py-0.5 font-black text-xs text-slate-900 bg-white text-center w-23 outline-none focus:ring-1 focus:ring-cyan-500 shadow-2xs">
-                                    <div class="duracion-badge mt-0.5 text-[9.5px] font-black text-cyan-950 bg-cyan-200/90 rounded py-0.5 w-23 text-center">
-                                        ${horasSlot.toFixed(2)} h
+                                    
+                                    <div class="flex items-center gap-1 mt-0.5 w-23">
+                                        <div class="duracion-badge flex-1 text-[9.5px] font-black text-cyan-950 bg-cyan-200/90 rounded py-0.5 text-center">
+                                            ${horasSlot.toFixed(2)} h
+                                        </div>
+                                        <button type="button" onclick="toggleFiltroFila(${fIndex})" 
+                                            title="${esFilaFiltrada ? 'Quitar filtro de este tramo' : 'Filtrar y ver horas realizadas en este tramo (' + fila.horaInicio + ' - ' + fila.horaFin + ')'}" 
+                                            class="no-print p-1 rounded transition cursor-pointer shrink-0 ${esFilaFiltrada ? 'bg-amber-400 text-slate-950 font-black ring-1 ring-amber-500' : 'bg-slate-200 text-slate-600 hover:bg-cyan-600 hover:text-white'}">
+                                            <i class="fa-solid ${esFilaFiltrada ? 'fa-eye text-[10.5px]' : 'fa-filter text-[9.5px]'}"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </td>
@@ -2296,6 +2421,7 @@
                             if (!Array.isArray(fila.dias[dia])) fila.dias[dia] = [];
                             const actividades = fila.dias[dia];
                             const celdaId = `celda_${fIndex}_${dia}`;
+                            const esColumnaFiltrada = (diaFiltrado === dia);
 
                             const actsHtml = actividades.map((act, actIndex) => {
                                 const tieneMonitores = act.monitores && act.monitores.length > 0;
@@ -2405,7 +2531,7 @@
                             const tooltipCelda = modoRapidoActivo ? 'title="Haz clic aquí para añadir o modificar clases"' : '';
 
                             return `
-                                <td data-celda-id="${celdaId}" class="celda-dia-drop p-1 border border-slate-300 align-top transition-all"
+                                <td data-celda-id="${celdaId}" class="celda-dia-drop p-1 border border-slate-300 align-top transition-all ${esColumnaFiltrada ? 'dia-columna-filtrada' : ''}"
                                     ${clickCeldaHandler}
                                     ${tooltipCelda}
                                     ondragover="manejarDragOver(event)"
@@ -2425,6 +2551,15 @@
                     });
                 }
 
+                let subtextoContexto = '';
+                if (diaFiltrado) {
+                    subtextoContexto = `(Día: ${diaFiltrado.toUpperCase()})`;
+                } else if (filaFiltradaIndex !== null && semana.filas[filaFiltradaIndex]) {
+                    subtextoContexto = `(Tramo: ${semana.filas[filaFiltradaIndex].horaInicio} - ${semana.filas[filaFiltradaIndex].horaFin})`;
+                } else if (actividadResaltada) {
+                    subtextoContexto = `(${escapeHtml(actividadResaltada)})`;
+                }
+
                 htmlTabla += `
                             </tbody>
                             <tfoot>
@@ -2433,7 +2568,7 @@
                                     <td class="p-1.5 border border-slate-300 text-slate-900 font-black text-center uppercase tracking-wider text-[9.5px]">
                                         <div class="leading-tight">
                                             <span>Total Horas</span>
-                                            ${actividadResaltada ? `<span class="block text-[8px] text-amber-800 font-bold tracking-normal normal-case">(${escapeHtml(actividadResaltada)})</span>` : ''}
+                                            ${subtextoContexto ? `<span class="block text-[8px] text-amber-900 font-bold tracking-normal normal-case">${subtextoContexto}</span>` : ''}
                                         </div>
                                     </td>
                                     <td colspan="6" class="p-1.5 border border-slate-300">
@@ -2469,7 +2604,7 @@
         }
 
         // ==========================================================
-        // --- CÁLCULO DE TOTALES EN PIE (CON FILTROS Y ATENUACIÓN) ---
+        // --- CÁLCULO DE TOTALES EN PIE (DÍA, TRAMO, ACTIVIDAD Y EMPLEADO) ---
         // ==========================================================
         function calcularTotales() {
             const semana = obtenerSemanaActiva();
@@ -2482,15 +2617,25 @@
                 resumenSesiones[m] = 0;
             });
 
-            // Si hay actividad resaltada, se computa únicamente el tiempo de esa actividad
             const filtroAct = actividadResaltada ? actividadResaltada.trim().toUpperCase() : null;
+            let totalMinutosContexto = 0;
 
-            (semana.filas || []).forEach(fila => {
+            (semana.filas || []).forEach((fila, fIndex) => {
+                // Si hay filtro de tramo y no coincide con esta fila, saltar
+                if (filaFiltradaIndex !== null && filaFiltradaIndex !== fIndex) {
+                    return;
+                }
+
                 const horas = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
+                
                 DIAS.forEach(dia => {
+                    // Si hay filtro de día y no coincide con este día, saltar
+                    if (diaFiltrado && diaFiltrado !== dia) {
+                        return;
+                    }
+
                     const actividades = (fila.dias && fila.dias[dia]) ? fila.dias[dia] : [];
                     actividades.forEach(act => {
-                        // Si hay filtro de actividad, ignorar las actividades que no coincidan
                         if (filtroAct && !coincideConActividad(act.actividad, filtroAct)) {
                             return;
                         }
@@ -2499,14 +2644,24 @@
                             if (asig && asig.asiste) {
                                 resumenMinutos[asig.monitor] = (resumenMinutos[asig.monitor] || 0) + (horas * 60);
                                 resumenSesiones[asig.monitor] = (resumenSesiones[asig.monitor] || 0) + 1;
+                                totalMinutosContexto += (horas * 60);
                             }
                         });
                     });
                 });
             });
 
+            // Actualizar total en chip de contexto
+            const horasContexto = document.getElementById('horas-filtro-contexto');
+            if (horasContexto && (diaFiltrado || filaFiltradaIndex !== null)) {
+                const hDecimal = (totalMinutosContexto / 60).toFixed(2);
+                horasContexto.textContent = `— ${hDecimal}h totales`;
+            }
+
             const contenedor = document.getElementById('resumen-monitores');
             if (!contenedor) return;
+
+            const hayFiltroEspecial = !!(diaFiltrado || (filaFiltradaIndex !== null) || filtroAct);
 
             contenedor.innerHTML = Object.entries(resumenMinutos).map(([monitor, minutos], idx) => {
                 const horasDecimal = (minutos / 60).toFixed(2);
@@ -2518,12 +2673,11 @@
                 
                 const estaSeleccionado = monitorResaltado && (monitorResaltado.toLowerCase() === monitor.toLowerCase());
                 
-                // ATENUACIÓN CUANDO HAY FILTRO DE EMPLEADO O FILTRO DE ACTIVIDAD
                 let esAtenuado = false;
                 if (monitorResaltado && !estaSeleccionado) {
-                    esAtenuado = true; // Atenúa a los demás monitores
-                } else if (filtroAct && numSesiones === 0) {
-                    esAtenuado = true; // Si filtramos por actividad y este monitor no la da, lo atenúa
+                    esAtenuado = true;
+                } else if (hayFiltroEspecial && numSesiones === 0) {
+                    esAtenuado = true; // Atenúa a monitores sin horas en este día/tramo/actividad
                 }
 
                 let claseExtra = 'bg-white hover:border-cyan-500';
@@ -2531,13 +2685,13 @@
                     claseExtra = 'total-card-activo';
                 } else if (esAtenuado) {
                     claseExtra = 'total-card-atenuado';
-                } else if (filtroAct && numSesiones > 0) {
+                } else if (hayFiltroEspecial && numSesiones > 0) {
                     claseExtra = 'bg-amber-50 border-amber-400 ring-1 ring-amber-400';
                 }
 
                 return `
                     <div onclick="toggleResaltarMonitor(appData.monitores[${idx}])" 
-                        title="${estaSeleccionado ? 'Haz clic para desactivar el resalte' : (filtroAct ? 'Horas de ' + escapeHtml(monitor) + ' en ' + escapeHtml(filtroAct) : 'Haz clic para resaltar las clases de ' + escapeHtml(monitor))}"
+                        title="${estaSeleccionado ? 'Haz clic para desactivar el resalte' : 'Haz clic para resaltar las clases de ' + escapeHtml(monitor)}"
                         class="px-2 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1.5 cursor-pointer transition select-none hover:scale-105 ${claseExtra}">
                         
                         <i class="fa-solid fa-highlighter text-xs ${estaSeleccionado ? 'text-amber-700' : 'text-slate-300 hover:text-cyan-700'}"></i>
@@ -2548,8 +2702,8 @@
                         ${estaSeleccionado ? `
                             <span class="text-[9px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Activo</span>
                         ` : ''}
-                        ${(filtroAct && !estaSeleccionado && numSesiones > 0) ? `
-                            <span class="text-[8px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-1 rounded uppercase">Imparte</span>
+                        ${(hayFiltroEspecial && !estaSeleccionado && numSesiones > 0) ? `
+                            <span class="text-[8px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-1 rounded uppercase">Asignado</span>
                         ` : ''}
                     </div>
                 `;
@@ -2917,7 +3071,9 @@
 
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (modoRapidoActivo) {
+                    if (diaFiltrado || filaFiltradaIndex !== null) {
+                        limpiarFiltroContexto();
+                    } else if (modoRapidoActivo) {
                         toggleModoRapido(false);
                     } else if (actividadResaltada) {
                         desmarcarActividad();
@@ -2954,9 +3110,9 @@
             {
                 targetId: 'tour-totales-pie',
                 icono: 'fa-highlighter',
-                titulo: 'Resaltar Empleado y Total de Horas',
-                descripcion: 'Al hacer clic sobre cualquier monitor, se atenuarán los demás en el pie y en la tabla. Si filtras por Actividad, el pie calculará automáticamente el total de horas de esa actividad concreta para cada monitor.',
-                tip: 'El pie permanece siempre visible al hacer scroll.'
+                titulo: 'Filtro de Día, Tramo y Total de Horas',
+                descripcion: 'Haz clic en el icono de filtro/ojo junto a cualquier Día o Franja horaria para aislarlo y recalcular inmediatamente en el pie las horas que realiza cada monitor en ese intervalo.',
+                tip: 'Pulsa Escape o la (X) del chip amarillo para desactivar el filtro cuando desees.'
             }
         ];
 
