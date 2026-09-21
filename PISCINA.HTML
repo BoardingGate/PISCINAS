@@ -774,63 +774,50 @@
         // SISTEMA DE VALIDACIÓN DE ARCHIVO EN GOOGLE DRIVE
         // ==========================================================
         // Sustituye este ID o enlace completo por el de tu archivo compartido públicamente en Google Drive
-        const GDRIVE_LINK_O_ID = "1BKLBQPqQE8hf6D2gcSctBbKWubLT22Zo/view?usp=sharing";
+ // Pega aquí tu enlace de Google Sheets o su ID:
+const GDRIVE_LINK_O_ID = "https://docs.google.com/spreadsheets/d/1wj4JaOVI0raR6kbQCsER5QMlqt1LzhXb/edit?usp=sharing";
 
-        function extraerIdGoogleDrive(urlOId) {
-            if (!urlOId) return '';
-            const match = urlOId.match(/\/d\/([a-zA-Z0-9_-]+)/);
-            if (match && match[1]) return match[1];
-            const matchId = urlOId.match(/id=([a-zA-Z0-9_-]+)/);
-            if (matchId && matchId[1]) return matchId[1];
-            return urlOId.trim();
+function extraerIdGoogleDrive(urlOId) {
+    if (!urlOId) return '';
+    const match = urlOId.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) return match[1];
+    const matchId = urlOId.match(/id=([a-zA-Z0-9_-]+)/);
+    if (matchId && matchId[1]) return matchId[1];
+    return urlOId.trim();
+}
+
+function verificarArchivoGoogleDrive() {
+    return new Promise((resolve, reject) => {
+        const fileId = extraerIdGoogleDrive(GDRIVE_LINK_O_ID);
+        if (!fileId) {
+            reject("No se ha configurado un ID válido.");
+            return;
         }
 
-        function verificarArchivoGoogleDrive() {
-            return new Promise((resolve, reject) => {
-                const fileId = extraerIdGoogleDrive(GDRIVE_LINK_O_ID);
-                if (!fileId) {
-                    reject("No se ha configurado un identificador o enlace válido de Google Drive.");
-                    return;
+        // Endpoint de Google Sheets que responde 200 OK públicamente sin bloqueo CORS
+        const url = `https://docs.google.com/spreadsheets/d/${fileId}/gviz/tq?tqx=out:json&t=${Date.now()}`;
+
+        fetch(url, { method: 'GET', mode: 'cors' })
+            .then(res => {
+                if (res.ok) {
+                    return res.text();
+                } else {
+                    throw new Error("El archivo no está disponible (Código " + res.status + ")");
                 }
-
-                // El thumbnail de Google Drive responde con imagen si existe o falla con error si no existe / no es público
-                const urlPrueba = `https://drive.google.com/thumbnail?id=${fileId}&sz=w100&_t=${Date.now()}`;
-                
-                const img = new Image();
-                let terminado = false;
-
-                const temporizador = setTimeout(() => {
-                    if (!terminado) {
-                        terminado = true;
-                        img.src = "";
-                        reject("Tiempo de espera agotado al consultar el archivo de Google Drive.");
-                    }
-                }, 8000);
-
-                img.onload = function () {
-                    if (!terminado) {
-                        terminado = true;
-                        clearTimeout(temporizador);
-                        // Comprobación de que no devuelva un píxel transparente o error genérico
-                        if (img.naturalWidth > 0) {
-                            resolve();
-                        } else {
-                            reject("El archivo no devolvió un formato válido.");
-                        }
-                    }
-                };
-
-                img.onerror = function () {
-                    if (!terminado) {
-                        terminado = true;
-                        clearTimeout(temporizador);
-                        reject("El archivo compartido no existe, ha sido eliminado o no tiene permisos públicos.");
-                    }
-                };
-
-                img.src = urlPrueba;
+            })
+            .then(texto => {
+                // Si el archivo existe y es público, Google devuelve una estructura tipo google.visualization.Query.setResponse(...)
+                if (texto && texto.includes("google.visualization.Query.setResponse")) {
+                    resolve();
+                } else {
+                    reject("El documento no es público o fue eliminado.");
+                }
+            })
+            .catch(err => {
+                reject("No se pudo verificar el archivo de control. Asegúrate de que tiene acceso 'Cualquiera con el enlace'.");
             });
-        }
+    });
+}
 
         function detenerCargaPorError(mensaje) {
             const estado = document.getElementById('estado-gdrive');
