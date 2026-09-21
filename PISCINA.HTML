@@ -104,7 +104,7 @@
             animation: flashInsercion 0.7s ease-out;
         }
 
-        /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA (PANTALLA) */
+        /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA */
         .act-card.act-card-resaltado,
         .act-card.act-card-resaltado-actividad {
             background-color: #fef08a !important;
@@ -143,19 +143,19 @@
 
         /* RESALTE DE DÍA O FILA FILTRADA */
         .dia-columna-filtrada {
-            background-color: #fef9c3 !important; /* Yellow 100 */
+            background-color: #fef9c3 !important;
             border-left: 2px solid #eab308 !important;
             border-right: 2px solid #eab308 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
         .dia-th-filtrado {
-            background-color: #713f12 !important; /* Yellow 900 */
+            background-color: #713f12 !important;
             color: #fef08a !important;
             border-color: #eab308 !important;
         }
         .fila-filtrada {
-            background-color: #fef9c3 !important; /* Yellow 100 */
+            background-color: #fef9c3 !important;
             outline: 2px solid #eab308 !important;
             outline-offset: -2px;
             -webkit-print-color-adjust: exact !important;
@@ -536,6 +536,7 @@
                 </button>
             </div>
 
+            <!-- GUÍA Y NOTA EXPLICATIVA DE MODOS -->
             <div class="bg-slate-800/90 border border-slate-700 p-2.5 rounded-xl text-[11px] text-slate-300 space-y-1.5">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10.5px] leading-tight">
                     <p class="bg-slate-700/50 p-1.5 rounded border border-slate-600">
@@ -622,6 +623,7 @@
                 Sube una fotografía de un cuadrante semanal de actividades y la IA creará un <b>nuevo calendario</b> con las franjas horarias y actividades detectadas.
             </p>
 
+            <!-- SELECTOR DE FOTOGRAFÍA -->
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-slate-700">1. Selecciona la imagen o fotografía del horario:</label>
                 <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/50 rounded-xl p-4 text-center cursor-pointer transition relative">
@@ -635,6 +637,7 @@
                 </div>
             </div>
 
+            <!-- CONFIGURACIÓN API Y NOMBRE DEL MODELO -->
             <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     <div class="space-y-1">
@@ -663,6 +666,7 @@
                 </p>
             </div>
 
+            <!-- ESTADO / SPINNER DE CARGA -->
             <div id="estado-carga-ia" class="hidden text-center py-2 space-y-2">
                 <div class="inline-block animate-spin text-purple-600 text-2xl">
                     <i class="fa-solid fa-circle-notch"></i>
@@ -672,6 +676,7 @@
                 </p>
             </div>
 
+            <!-- ACCIONES -->
             <div class="flex justify-end gap-2 pt-2 border-t">
                 <button onclick="cerrarModalIAImport()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
                     Cancelar
@@ -701,6 +706,7 @@
             </p>
 
             <div class="space-y-2.5 pt-1">
+                <!-- OPCIÓN 1: VACIAR CLASES -->
                 <button onclick="vaciarSemanaActual()" class="w-full text-left bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 p-3 rounded-xl transition cursor-pointer group">
                     <div class="flex items-center gap-2 text-amber-900 font-black text-xs">
                         <i class="fa-solid fa-broom text-amber-600 text-sm"></i>
@@ -711,6 +717,7 @@
                     </p>
                 </button>
 
+                <!-- OPCIÓN 2: ELIMINAR CALENDARIO COMPLETO -->
                 <button onclick="eliminarSemanaActualCompleta()" class="w-full text-left bg-red-50 hover:bg-red-100 border-2 border-red-300 p-3 rounded-xl transition cursor-pointer group">
                     <div class="flex items-center gap-2 text-red-900 font-black text-xs">
                         <i class="fa-solid fa-trash-can text-red-600 text-sm"></i>
@@ -977,8 +984,8 @@
         let contextoAsignacion = null;
         let monitorResaltado = null;
         let actividadResaltada = null;
-        let diaFiltrado = null;        // NUEVO: 'lunes', 'martes', etc.
-        let filaFiltradaIndex = null;  // NUEVO: índice numérico de la fila
+        let diaFiltrado = null;
+        let filaFiltradaIndex = null;
         let draggedActivity = null;
 
         function calcularDuracionHoras(inicio, fin) {
@@ -1354,7 +1361,7 @@
             const modelo = (modeloInput ? modeloInput.value.trim() : '') || 'gemini-3.1-pro-preview';
 
             if (!apiKey) {
-                alert('Introduce una clave API de Gemini.');
+                alert('Introduce una clave API de Gemini. Puedes conseguir una gratuita en 30 segundos pulsando en el enlace "Obtener clave".');
                 apiKeyInput.focus();
                 return;
             }
@@ -1369,12 +1376,14 @@
 
             const promptSistema = `
                 Eres un asistente experto en digitalización de cuadrantes y calendarios de actividades dirigidas.
-                Analiza la fotografía adjunta.
-                Extrae con precisión las franjas horarias (horaInicio y horaFin en formato 24h HH:MM) y las actividades de lunes a sabado.
-                Si en una casilla aparece una sala (S7, S3, S2, SC, PISC, etc.), inclúyela en el campo "sala".
-                Responde ÚNICAMENTE con un JSON válido sin formato Markdown adicional:
+                Analiza detenidamente la fotografía adjunta que contiene un horario o cuadrante semanal.
+                Extrae con precisión las franjas horarias (horaInicio y horaFin en formato 24h HH:MM) y las actividades que aparecen en cada día de la semana (lunes, martes, miercoles, jueves, viernes, sabado).
+                Si en una casilla aparece una sala o vaso (como S7, S3, S2, SC, PISC), inclúyela en el campo "sala".
+                
+                IMPORTANTE: Responde ÚNICAMENTE con un JSON válido y limpio, SIN texto introductorio, SIN explicaciones y SIN bloques de formato markdown.
+                Estructura exacta del JSON:
                 {
-                  "rango": "Texto del título o 'Horario Importado IA'",
+                  "rango": "Texto de título o período que aparezca en el cartel (o 'Horario Importado IA')",
                   "filas": [
                     {
                       "horaInicio": "09:00",
@@ -1382,7 +1391,7 @@
                       "dias": {
                         "lunes": [{"actividad": "NOMBRE", "sala": "S7"}],
                         "martes": [],
-                        "miercoles": [],
+                        "miercoles": [{"actividad": "OTRA ACTIVIDAD", "sala": ""}],
                         "jueves": [],
                         "viernes": [],
                         "sabado": []
@@ -1396,17 +1405,19 @@
                 const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
 
                 const requestBody = {
-                    contents: [{
-                        parts: [
-                            { text: promptSistema },
-                            {
-                                inline_data: {
-                                    mime_type: imagenBase64IA.mimeType,
-                                    data: imagenBase64IA.data
+                    contents: [
+                        {
+                            parts: [
+                                { text: promptSistema },
+                                {
+                                    inline_data: {
+                                        mime_type: imagenBase64IA.mimeType,
+                                        data: imagenBase64IA.data
+                                    }
                                 }
-                            }
-                        ]
-                    }],
+                            ]
+                        }
+                    ],
                     generationConfig: {
                         temperature: 0.1,
                         response_mime_type: "application/json"
@@ -1428,7 +1439,7 @@
                 const textoGenerado = dataRes.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (!textoGenerado) {
-                    throw new Error('La IA no devolvió contenido.');
+                    throw new Error('La IA no devolvió ningún contenido legible.');
                 }
 
                 let jsonLimpio = textoGenerado.trim();
@@ -1441,7 +1452,7 @@
                 const objetoImportado = JSON.parse(jsonLimpio);
 
                 if (!objetoImportado.filas || !Array.isArray(objetoImportado.filas)) {
-                    throw new Error('El formato extraído no es válido.');
+                    throw new Error('El formato extraído no coincide con la estructura requerida.');
                 }
 
                 const nuevoCalendario = {
@@ -1475,7 +1486,7 @@
                 cerrarModalIAImport();
                 render();
 
-                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}".`);
+                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias y todas sus actividades mediante ${modelo}.`);
 
             } catch (error) {
                 console.error("Error en importación IA:", error);
@@ -1517,7 +1528,7 @@
             if (!semana) return;
 
             if (appData.semanas.length <= 1) {
-                alert('No se puede eliminar el único calendario existente.');
+                alert('No se puede eliminar el único calendario existente. Si deseas limpiarlo por completo, utiliza la opción "Vaciar todas las clases".');
                 return;
             }
 
@@ -1564,11 +1575,7 @@
 
         function sincronizarVistaSegunResalte() {
             const hayResalteActivo = !!(monitorResaltado || actividadResaltada || diaFiltrado || filaFiltradaIndex !== null);
-            if (hayResalteActivo) {
-                setVistaCompleta(true);
-            } else {
-                setVistaCompleta(false);
-            }
+            setVistaCompleta(hayResalteActivo);
         }
 
         function abrirModalBackup() {
@@ -1852,7 +1859,7 @@
         }
 
         function promptCrearSalaRapida() {
-            const n = prompt('Introduce el código o nombre de la sala:');
+            const n = prompt('Introduce el código o nombre de la sala (Ej: S4, PISC):');
             if (n && n.trim()) {
                 const clean = n.trim().toUpperCase();
                 if (!appData.salasCatalogo.includes(clean)) {
@@ -1932,7 +1939,7 @@
 
             if (!esModoCreacionCompleta) {
                 if (actividadesExistentes.length === 0) {
-                    alert('Esta casilla está vacía. Para crear una clase nueva selecciona al menos Actividad, Monitor y Sala.');
+                    alert('Esta casilla está vacía. Para crear una clase nueva completa selecciona al menos una Actividad, un Monitor y una Sala.');
                     return;
                 }
 
@@ -1977,25 +1984,23 @@
             render();
         }
 
-        // NUEVO: FILTRO POR DÍA DE LA SEMANA
         function toggleFiltroDia(dia) {
             if (diaFiltrado === dia) {
                 diaFiltrado = null;
             } else {
                 diaFiltrado = dia;
-                filaFiltradaIndex = null; // Excluyente con filtro de tramo
+                filaFiltradaIndex = null;
             }
             sincronizarVistaSegunResalte();
             render();
         }
 
-        // NUEVO: FILTRO POR FRANJA HORARIA
         function toggleFiltroFila(fIndex) {
             if (filaFiltradaIndex === fIndex) {
                 filaFiltradaIndex = null;
             } else {
                 filaFiltradaIndex = fIndex;
-                diaFiltrado = null; // Excluyente con filtro de día
+                diaFiltrado = null;
             }
             sincronizarVistaSegunResalte();
             render();
@@ -2102,7 +2107,7 @@
         }
 
         // ==========================================================
-        // --- FUNCIONES DE ARRASTRAR Y SOLTAR (DRAG & DROP) ---
+        // --- DRAG & DROP ---
         // ==========================================================
         function manejarDragStart(e, fIndex, dia, actIndex) {
             if (modoRapidoActivo) {
@@ -2225,7 +2230,6 @@
                 const inpRango = document.getElementById('semana-rango');
                 if (inpRango) inpRango.value = semana.rango || '';
 
-                // CHIP DE FILTRO CONTEXTUAL (DÍA O TRAMO)
                 const badgeContexto = document.getElementById('badge-filtro-contexto');
                 const iconoContexto = document.getElementById('icono-filtro-contexto');
                 const labelContexto = document.getElementById('label-filtro-contexto');
@@ -2319,7 +2323,6 @@
                 const claseModoDia = diaFiltrado ? 'modo-filtro-dia-activo' : '';
                 const claseModoFila = (filaFiltradaIndex !== null) ? 'modo-filtro-fila-activo' : '';
 
-                // CABECERA DE DÍAS CON BOTÓN DE OJO / FILTRADO
                 const thDiasHtml = DIAS.map(d => {
                     const diaNombre = d.charAt(0).toUpperCase() + d.slice(1);
                     const estaFiltrado = (diaFiltrado === d);
@@ -2604,7 +2607,7 @@
         }
 
         // ==========================================================
-        // --- CÁLCULO DE TOTALES EN PIE (DÍA, TRAMO, ACTIVIDAD Y EMPLEADO) ---
+        // --- CÁLCULO DE TOTALES EN PIE (TOTALMENTE HOMOGÉNEO) ---
         // ==========================================================
         function calcularTotales() {
             const semana = obtenerSemanaActiva();
@@ -2621,15 +2624,15 @@
             let totalMinutosContexto = 0;
 
             (semana.filas || []).forEach((fila, fIndex) => {
-                // Si hay filtro de tramo y no coincide con esta fila, saltar
-                if (filaFiltradaIndex !== null && filaFiltradaIndex !== fIndex) {
+                // Filtro de tramo horario: coincidencia numérica exacta
+                if (filaFiltradaIndex !== null && Number(filaFiltradaIndex) !== Number(fIndex)) {
                     return;
                 }
 
                 const horas = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
                 
                 DIAS.forEach(dia => {
-                    // Si hay filtro de día y no coincide con este día, saltar
+                    // Filtro de día de la semana
                     if (diaFiltrado && diaFiltrado !== dia) {
                         return;
                     }
@@ -2651,11 +2654,9 @@
                 });
             });
 
-            // Actualizar total en chip de contexto
             const horasContexto = document.getElementById('horas-filtro-contexto');
             if (horasContexto && (diaFiltrado || filaFiltradaIndex !== null)) {
-                const hDecimal = (totalMinutosContexto / 60).toFixed(2);
-                horasContexto.textContent = `— ${hDecimal}h totales`;
+                horasContexto.textContent = `— ${(totalMinutosContexto / 60).toFixed(2)}h totales`;
             }
 
             const contenedor = document.getElementById('resumen-monitores');
@@ -2671,39 +2672,43 @@
                 const textoSesiones = numSesiones === 1 ? '1 sesión' : `${numSesiones} ses.`;
                 const colorMonitor = obtenerColorTextoMonitor(monitor);
                 
-                const estaSeleccionado = monitorResaltado && (monitorResaltado.toLowerCase() === monitor.toLowerCase());
+                const estaSeleccionadoMonitor = monitorResaltado && (monitorResaltado.toLowerCase() === monitor.toLowerCase());
                 
-                let esAtenuado = false;
-                if (monitorResaltado && !estaSeleccionado) {
-                    esAtenuado = true;
-                } else if (hayFiltroEspecial && numSesiones === 0) {
-                    esAtenuado = true; // Atenúa a monitores sin horas en este día/tramo/actividad
-                }
+                // CONDICIÓN UNIFICADA:
+                // Si el monitor está resaltado individualmente O tiene horas en el filtro activo (Día, Tramo o Actividad),
+                // recibe la MISMA clase total-card-activo (#fef08a, borde #b45309).
+                let claseEstilo = 'bg-white hover:border-cyan-500';
+                let esResaltadoVisual = false;
 
-                let claseExtra = 'bg-white hover:border-cyan-500';
-                if (estaSeleccionado) {
-                    claseExtra = 'total-card-activo';
-                } else if (esAtenuado) {
-                    claseExtra = 'total-card-atenuado';
-                } else if (hayFiltroEspecial && numSesiones > 0) {
-                    claseExtra = 'bg-amber-50 border-amber-400 ring-1 ring-amber-400';
+                if (estaSeleccionadoMonitor) {
+                    claseEstilo = 'total-card-activo';
+                    esResaltadoVisual = true;
+                } else if (monitorResaltado && !estaSeleccionadoMonitor) {
+                    claseEstilo = 'total-card-atenuado';
+                } else if (hayFiltroEspecial) {
+                    if (numSesiones > 0) {
+                        claseEstilo = 'total-card-activo'; // Exactamente el mismo amarillo y borde
+                        esResaltadoVisual = true;
+                    } else {
+                        claseEstilo = 'total-card-atenuado';
+                    }
                 }
 
                 return `
                     <div onclick="toggleResaltarMonitor(appData.monitores[${idx}])" 
-                        title="${estaSeleccionado ? 'Haz clic para desactivar el resalte' : 'Haz clic para resaltar las clases de ' + escapeHtml(monitor)}"
-                        class="px-2 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1.5 cursor-pointer transition select-none hover:scale-105 ${claseExtra}">
+                        title="${estaSeleccionadoMonitor ? 'Haz clic para desactivar el resalte' : 'Haz clic para resaltar las clases de ' + escapeHtml(monitor)}"
+                        class="px-2 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1.5 cursor-pointer transition select-none hover:scale-105 ${claseEstilo}">
                         
-                        <i class="fa-solid fa-highlighter text-xs ${estaSeleccionado ? 'text-amber-700' : 'text-slate-300 hover:text-cyan-700'}"></i>
-                        <span class="nombre-monitor-total font-black text-xs md:text-sm" style="color: ${estaSeleccionado ? '#78350f' : colorMonitor};">${escapeHtml(monitor)}:</span>
+                        <i class="fa-solid fa-highlighter text-xs ${esResaltadoVisual ? 'text-amber-700' : 'text-slate-300 hover:text-cyan-700'}"></i>
+                        <span class="nombre-monitor-total font-black text-xs md:text-sm" style="color: ${esResaltadoVisual ? '#78350f' : colorMonitor};">${escapeHtml(monitor)}:</span>
                         <span class="total-horas-num font-black text-xs md:text-sm text-slate-950">${horasDecimal}h</span>
                         <span class="text-[9.5px] text-slate-600 font-semibold">(${hEnteras}h ${mRestantes}m · <b>${textoSesiones}</b>)</span>
                         
-                        ${estaSeleccionado ? `
+                        ${estaSeleccionadoMonitor ? `
                             <span class="text-[9px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Activo</span>
                         ` : ''}
-                        ${(hayFiltroEspecial && !estaSeleccionado && numSesiones > 0) ? `
-                            <span class="text-[8px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-1 rounded uppercase">Asignado</span>
+                        ${(hayFiltroEspecial && !estaSeleccionadoMonitor && numSesiones > 0) ? `
+                            <span class="text-[8px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Asignado</span>
                         ` : ''}
                     </div>
                 `;
@@ -3084,35 +3089,93 @@
             });
         }
 
+        // TOUR COMPLETO RESTAURADO ÍNTEGRAMENTE
         let pasoTourActual = 0;
+
         const pasosTour = [
             {
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
                 titulo: 'Insertar o Modificar a un Clic',
-                descripcion: 'Herramienta de doble función: Si seleccionas Actividad, Monitor y Sala, creará clases nuevas completas. Si seleccionas solo uno o dos datos, al pulsar sobre cualquier clase existente modificará únicamente ese dato.',
-                tip: 'El proceso permanece abierto para que puedas actualizar o rellenar múltiples clases seguidas.'
+                descripcion: 'Herramienta de doble función: Si seleccionas Actividad, Monitor y Sala, creará clases nuevas completas. Si seleccionas solo uno o dos datos (ej. solo Monitor o solo Sala), al pulsar sobre cualquier clase existente modificará únicamente ese dato sin alterar el resto.',
+                tip: 'El proceso permanece abierto para que puedas actualizar o rellenar múltiples clases seguidas. Pulsa "Finalizar" para guardar.'
             },
             {
                 targetId: 'tour-ia-import',
                 icono: 'fa-wand-magic-sparkles',
                 titulo: 'Importación Inteligente con IA',
-                descripcion: 'Sube una fotografía de cualquier cuadrante de actividades para que la IA cree un nuevo calendario estructurando las franjas y actividades.',
-                tip: 'Configurado por defecto con gemini-3.1-pro-preview.'
+                descripcion: 'Sube o arrastra una fotografía de cualquier cuadrante de actividades para que la Inteligencia Artificial cree un nuevo calendario estructurando las franjas horarias y actividades correspondientes.',
+                tip: 'Configurado por defecto con gemini-3.1-pro-preview. Puedes cambiar el modelo en cualquier momento en el panel.'
             },
             {
                 targetId: 'btn-vista-completa',
                 icono: 'fa-compress',
                 titulo: 'Modo Vista Completa',
-                descripcion: 'Reduce automáticamente la escala para que quepan todas las horas del día en tu pantalla a la vez sin scroll vertical.',
+                descripcion: 'Reduce automáticamente la escala y ajusta las fuentes del calendario para que quepan todas las horas del día en tu pantalla a la vez sin tener que hacer scroll vertical. ¡Se activa solo al resaltar un monitor o actividad!',
                 tip: 'Vuelve a pulsar para restaurar la vista normal cuando lo necesites.'
+            },
+            {
+                targetId: 'tour-nuevo',
+                icono: 'fa-calendar-plus',
+                titulo: 'Calendario en Blanco',
+                descripcion: 'Crea un nuevo calendario desde cero con todas las franjas horarias de 1 hora completas comenzando a las 07:00 de la mañana hasta las 23:00 de la noche.',
+                tip: 'Ahorra tiempo generando automáticamente todo el esqueleto del día.'
+            },
+            {
+                targetId: 'tour-semanas',
+                icono: 'fa-calendar-days',
+                titulo: 'Gestión y Cambio de Semanas',
+                descripcion: 'Permite alternar entre diferentes calendarios mediante el selector y las flechas. El botón Borrar/Vaciar permite limpiar las clases o eliminar el calendario completo.',
+                tip: 'El nombre o rango de fechas de la cabecera se puede modificar en cualquier momento escribiendo en él.'
+            },
+            {
+                targetId: 'tour-clonar',
+                icono: 'fa-clone',
+                titulo: 'Clonar Semana Completa',
+                descripcion: 'Crea una nueva semana copiando íntegramente todos los horarios, actividades y monitores asignados en la semana actual.',
+                tip: 'Al clonar, todas las casillas de asistencia se activan de nuevo por defecto.'
+            },
+            {
+                targetId: 'tour-monitores',
+                icono: 'fa-users-gear',
+                titulo: 'Base de Datos de Monitores',
+                descripcion: 'Abre el listado general de monitores para dar de alta nuevos profesores o darlos de baja con el botón de papelera.',
+                tip: 'También puedes dar de alta un monitor directamente al escribir su nombre en cualquier clase.'
+            },
+            {
+                targetId: 'tour-imprimir',
+                icono: 'fa-print',
+                titulo: 'Imprimir o Guardar en PDF',
+                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has marcado un monitor, día, tramo o actividad, sus horas saldrán destacadas en la cabecera impresa.',
+                tip: 'Elige la opción "Guardar como PDF" en tu navegador para generar copias digitales.'
+            },
+            {
+                targetId: 'tour-control-fila',
+                icono: 'fa-arrows-up-down',
+                titulo: 'Gestión de Filas y Reestructuración',
+                descripcion: 'El botón verde <strong>(+)</strong> intercala una nueva franja horaria inmediatamente debajo. Las flechas permiten subir o bajar franjas enteras de sitio.',
+                tip: 'La franja recién intercalada adopta como hora de inicio el fin de la anterior automáticamente.'
+            },
+            {
+                targetId: 'tour-horario-slot',
+                icono: 'fa-clock',
+                titulo: 'Horarios y Cómputo de Duración',
+                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo. Además, incorpora un botón con icono de filtro/ojo para ver qué profesores imparten clase a esa hora concreta.',
+                tip: 'Las casillas de hora muestran claramente horas y minutos.'
+            },
+            {
+                targetId: 'tour-actividad-card',
+                icono: 'fa-arrows-up-down-left-right',
+                titulo: 'Arrastrar Actividades (Drag & Drop)',
+                descripcion: 'Pincha en el icono de puntos (⋮⋮) de cualquier actividad y arrástrala hacia otro día o hacia otra hora para resituarla al instante.',
+                tip: 'Para añadir otra actividad simultánea en la misma franja horaria, pulsa el botón verde (+).'
             },
             {
                 targetId: 'tour-totales-pie',
                 icono: 'fa-highlighter',
-                titulo: 'Filtro de Día, Tramo y Total de Horas',
-                descripcion: 'Haz clic en el icono de filtro/ojo junto a cualquier Día o Franja horaria para aislarlo y recalcular inmediatamente en el pie las horas que realiza cada monitor en ese intervalo.',
-                tip: 'Pulsa Escape o la (X) del chip amarillo para desactivar el filtro cuando desees.'
+                titulo: 'Filtros de Día, Tramo y Total de Horas',
+                descripcion: '¡Haz clic sobre cualquier monitor del pie para resaltar todas sus clases! Además, si pulsas el icono de ojo de un día o de una franja horaria, verás iluminados en el pie en color amarillo los profesores que imparten clase en ese intervalo exacto.',
+                tip: 'El pie permanece siempre visible al hacer scroll vertical y muestra también el número de sesiones.'
             }
         ];
 
@@ -3120,6 +3183,7 @@
             pasoTourActual = 0;
             document.getElementById('tour-overlay').classList.remove('hidden');
             document.getElementById('tour-card').classList.remove('hidden');
+            
             window.addEventListener('resize', reposicionarTourActivo);
             actualizarPasoTour();
         }
@@ -3127,6 +3191,7 @@
         function cerrarTour() {
             const previo = document.querySelector('.tour-highlight');
             if (previo) previo.classList.remove('tour-highlight');
+
             document.getElementById('tour-overlay').classList.add('hidden');
             document.getElementById('tour-card').classList.add('hidden');
             window.removeEventListener('resize', reposicionarTourActivo);
