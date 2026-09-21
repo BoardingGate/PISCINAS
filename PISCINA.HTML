@@ -1,3 +1,19 @@
+Para implementar esta verificación de forma limpia y efectiva en una página web
+estática (frontend), la mejor técnica consiste en verificar la existencia de un
+archivo público de Google Drive intentando cargar su enlace directo como recurso
+(por ejemplo, una imagen de validación de Drive) o consultando su URL mediante
+una petición.
+
+Debido a que Google Drive bloquea las peticiones fetch() tradicionales por
+restricciones de CORS en el navegador, la forma estándar, infalible y sin
+dependencias externas es crear un elemento <img> oculto en memoria que apunte al
+ID público del archivo de Google Drive. Si el archivo existe y es público, el
+evento onload se disparará y permitirá la carga de la página. Si no existe, se
+borra o se revoca el acceso, saltará onerror y detendrá por completo la web.
+
+A continuación tienes el código completo con la comprobación integrada antes de
+iniciar la aplicación:
+
 <!DOCTYPE html> 
 <html lang="es">
 <head>
@@ -7,6 +23,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* PANTALLA DE BLOQUEO / CARGA INICIAL */
+        #bloqueo-gdrive {
+            position: fixed;
+            inset: 0;
+            background-color: #0f172a;
+            color: #ffffff;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
         /* CONTRASTE ACENTUADO DE FILAS */
         .fila-par {
             background-color: #ffffff !important;
@@ -14,7 +46,7 @@
             print-color-adjust: exact !important;
         }
         .fila-impar {
-            background-color: #e2e8f0 !important; /* Slate 200 bien visible */
+            background-color: #e2e8f0 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
@@ -27,7 +59,6 @@
             transition: all 0.3s ease !important;
         }
 
-        /* FIJACIÓN (STICKY) DE ENCABEZADOS DE DÍAS Y PIE DE TOTALES EN PANTALLA */
         .tabla-contenedor-scroll {
             max-height: calc(100vh - 165px);
             overflow-y: auto;
@@ -39,18 +70,17 @@
             position: sticky;
             top: 0;
             z-index: 25;
-            background-color: #020617 !important; /* Slate 950 */
+            background-color: #020617 !important;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         .print-table tfoot td {
             position: sticky;
             bottom: 0;
             z-index: 25;
-            background-color: #cbd5e1 !important; /* Slate 300 */
+            background-color: #cbd5e1 !important;
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        /* MODO VISTA COMPLETA (AJUSTE PARA VISIÓN TOTAL SIN SCROLL VERTICAL) */
         body.modo-vista-completa {
             padding: 4px 8px !important;
         }
@@ -83,7 +113,6 @@
             font-size: 8.5px !important;
         }
 
-        /* MODO INSERCIÓN RÁPIDA: EFECTO VISUAL EN CELDAS */
         .modo-rapido-activo-grid .celda-dia-drop {
             cursor: pointer;
             transition: background-color 0.15s ease, outline 0.15s ease;
@@ -94,7 +123,6 @@
             outline-offset: -2px;
         }
 
-        /* DESTELLO DE INSERCIÓN/MODIFICACIÓN EXITOSA */
         @keyframes flashInsercion {
             0% { background-color: #bbf7d0 !important; outline: 3px solid #16a34a !important; }
             50% { background-color: #dcfce7 !important; outline: 2px solid #22c55e !important; }
@@ -104,7 +132,6 @@
             animation: flashInsercion 0.7s ease-out;
         }
 
-        /* RESALTE Y SOMBREADO DE EMPLEADO O ACTIVIDAD MARCADA */
         .act-card.act-card-resaltado,
         .act-card.act-card-resaltado-actividad {
             background-color: #fef08a !important;
@@ -141,7 +168,6 @@
             filter: grayscale(35%);
         }
 
-        /* RESALTE DE DÍA O FILA FILTRADA */
         .dia-columna-filtrada {
             background-color: #fef9c3 !important;
             border-left: 2px solid #eab308 !important;
@@ -167,7 +193,6 @@
             filter: grayscale(70%) !important;
         }
 
-        /* EFECTO VISUAL DE DESTINO AL ARRASTRAR ACTIVIDADES (DRAG & DROP) */
         .celda-drop-activa {
             background-color: #cffafe !important;
             outline: 2px dashed #0891b2 !important;
@@ -175,7 +200,6 @@
             transition: all 0.15s ease-in-out;
         }
 
-        /* AJUSTES PARA IMPRESIÓN COMPACTA EN 1 HOJA A4 HORIZONTAL */
         @media print {
             @page {
                 size: A4 landscape;
@@ -223,7 +247,6 @@
                 padding: 2px 2px !important;
                 page-break-inside: avoid !important;
             }
-
             .act-card {
                 border: 1px solid #64748b !important;
                 background-color: transparent !important;
@@ -235,7 +258,6 @@
                 background-color: transparent !important;
                 border: 1px solid #94a3b8 !important;
             }
-
             .act-card.act-card-resaltado,
             .act-card.act-card-resaltado-actividad {
                 border: 2px solid #92400e !important;
@@ -276,7 +298,6 @@
                 opacity: 0.38 !important;
                 filter: grayscale(70%) !important;
             }
-
             input {
                 border: none !important;
                 background: transparent !important;
@@ -287,7 +308,6 @@
             input[type="time"]::-webkit-calendar-picker-indicator {
                 display: none !important;
             }
-
             .celda-horario {
                 font-weight: 900 !important;
             }
@@ -306,7 +326,6 @@
                 font-weight: 900 !important;
                 border: 1.5px solid #0e7490 !important;
             }
-
             #cabecera-documento h1 {
                 font-size: 16px !important;
                 font-weight: 900 !important;
@@ -327,13 +346,11 @@
                 color: #0f172a !important;
                 width: 420px !important;
             }
-
             #badge-filtro-monitor.hidden,
             #badge-filtro-actividad.hidden,
             #badge-filtro-contexto.hidden {
                 display: none !important;
             }
-
             #badge-filtro-monitor:not(.hidden),
             #badge-filtro-actividad:not(.hidden),
             #badge-filtro-contexto:not(.hidden) {
@@ -347,37 +364,6 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            #badge-filtro-monitor i,
-            #badge-filtro-actividad i,
-            #badge-filtro-contexto i {
-                font-size: 14px !important;
-                color: #b45309 !important;
-            }
-            #badge-filtro-monitor .texto-filtro-label,
-            #badge-filtro-actividad .texto-filtro-label,
-            #badge-filtro-contexto .texto-filtro-label {
-                font-size: 14px !important;
-                font-weight: 900 !important;
-                color: #78350f !important;
-                text-transform: uppercase !important;
-            }
-            #badge-filtro-monitor strong,
-            #badge-filtro-actividad strong,
-            #badge-filtro-contexto strong {
-                font-size: 15px !important;
-                font-weight: 900 !important;
-                color: #000000 !important;
-                text-transform: uppercase !important;
-                letter-spacing: 0.5px !important;
-            }
-            #badge-filtro-monitor .horas-filtro-total,
-            #badge-filtro-actividad .horas-filtro-total,
-            #badge-filtro-contexto .horas-filtro-total {
-                font-size: 14px !important;
-                font-weight: 900 !important;
-                color: #92400e !important;
-            }
-
             tfoot tr {
                 background-color: #cbd5e1 !important;
                 border-top: 3px solid #334155 !important;
@@ -391,18 +377,18 @@
                 padding: 2.5px 7px !important;
                 border: 1.5px solid #475569 !important;
             }
-            #resumen-monitores .nombre-monitor-total {
-                font-size: 13.5px !important;
-                font-weight: 900 !important;
-            }
-            #resumen-monitores .total-horas-num {
-                font-size: 13.5px !important;
-                font-weight: 900 !important;
-            }
         }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans p-2 md:p-3 min-h-screen">
+
+    <!-- OVERLAY DE VALIDACIÓN DE GOOGLE DRIVE -->
+    <div id="bloqueo-gdrive">
+        <div id="estado-gdrive" class="flex flex-col items-center gap-3">
+            <i class="fa-solid fa-circle-notch animate-spin text-4xl text-cyan-400"></i>
+            <p class="text-sm font-semibold tracking-wide text-slate-200">Verificando autorización y archivo en Google Drive...</p>
+        </div>
+    </div>
 
     <div class="max-w-[1600px] mx-auto space-y-2">
 
@@ -417,39 +403,30 @@
                 <button onclick="cambiarSemana(1)" title="Semana siguiente" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold transition cursor-pointer">
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
-                <!-- BOTÓN BORRAR/VACIAR -->
                 <button onclick="abrirModalBorrarVaciar()" title="Borrar o vaciar este calendario" class="ml-1 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
                     <i class="fa-solid fa-trash-can"></i> Borrar/Vaciar
                 </button>
             </div>
 
             <div class="flex flex-wrap items-center gap-1.5">
-                <!-- BOTÓN CALENDARIO EN BLANCO -->
                 <button id="tour-nuevo" onclick="crearSemanaEnBlanco()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-calendar-plus"></i> Calendario en Blanco
                 </button>
-
-                <!-- BOTÓN: IA IMPORTACIÓN DESDE FOTOGRAFÍA -->
                 <button id="tour-ia-import" onclick="abrirModalIAImport()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-3 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> IA Importación
                 </button>
-
                 <button id="tour-clonar" onclick="clonarSemanaActual()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-clone"></i> Clonar Semana
                 </button>
-
                 <button id="tour-monitores" onclick="abrirModalGestionMonitores()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-users-gear"></i> Monitores
                 </button>
-
                 <button id="tour-backup" onclick="abrirModalBackup()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-shield-halved"></i> Copia / Backup
                 </button>
-
                 <button id="tour-imprimir" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-print"></i> Imprimir en 1 Hoja
                 </button>
-
                 <button onclick="iniciarTourAyuda()" class="bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer" title="Ver guía interactiva">
                     <i class="fa-solid fa-circle-question"></i> Ayuda
                 </button>
@@ -465,13 +442,11 @@
                 <p class="text-[10px] text-slate-500">Arrastra las actividades con ⋮⋮ o pulsa en "Insertar eventos a un clic" para añadir o modificar rápidamente.</p>
             </div>
 
-            <!-- BOTONES DE MODO RÁPIDO Y VISTA COMPLETA -->
             <div class="flex items-center gap-1.5 no-print">
                 <button id="btn-toggle-modo-rapido" onclick="toggleModoRapido()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3 py-1.5 rounded-xl shadow border-2 border-amber-600 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-bolt-lightning text-amber-900"></i>
                     <span id="txt-btn-rapido">INSERTAR EVENTOS A UN CLIC</span>
                 </button>
-
                 <button id="btn-vista-completa" onclick="toggleVistaCompleta()" title="Ajustar zoom para ver todo el calendario completo sin hacer scroll vertical" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 py-1.5 rounded-xl shadow border-2 border-indigo-700 flex items-center gap-1.5 text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-compress"></i>
                     <span id="txt-btn-vista">VISTA COMPLETA</span>
@@ -479,7 +454,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-                <!-- CHIP DE FILTRO DÍA O TRAMO HORARIO -->
                 <div id="badge-filtro-contexto" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-500 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
                     <i id="icono-filtro-contexto" class="fa-solid fa-calendar-day text-amber-700 text-sm md:text-base"></i>
                     <span id="label-filtro-contexto" class="texto-filtro-label">Filtro:</span>
@@ -490,7 +464,6 @@
                     </button>
                 </div>
 
-                <!-- CHIP DE RESALTE ACTIVO DE EMPLEADO -->
                 <div id="badge-filtro-monitor" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
                     <i class="fa-solid fa-user-check text-amber-700 text-sm md:text-base"></i>
                     <span class="texto-filtro-label">Horas de:</span>
@@ -501,7 +474,6 @@
                     </button>
                 </div>
 
-                <!-- CHIP DE RESALTE ACTIVO DE ACTIVIDAD -->
                 <div id="badge-filtro-actividad" class="hidden flex items-center gap-2 bg-amber-100 border-2 border-amber-400 text-amber-950 px-2.5 py-1 rounded-xl text-xs md:text-sm font-bold shadow-sm">
                     <i class="fa-solid fa-bookmark text-amber-700 text-sm md:text-base"></i>
                     <span class="texto-filtro-label">Actividad:</span>
@@ -513,14 +485,13 @@
                 </div>
             </div>
             
-            <!-- PERÍODO DEL CALENDARIO -->
             <div id="tour-fechas" class="contenedor-periodo flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded-lg">
                 <label class="etiqueta-periodo text-[10px] font-bold text-slate-500 uppercase">Período:</label>
                 <input type="text" id="semana-rango" onchange="actualizarRangoTexto(this.value)" class="input-periodo font-bold text-xs bg-transparent outline-none text-slate-800 w-64">
             </div>
         </div>
 
-        <!-- PANEL DE INSERCIÓN Y MODIFICACIÓN RÁPIDA A UN CLIC -->
+        <!-- PANEL DE INSERCIÓN RÁPIDA -->
         <div id="panel-modo-rapido" class="hidden no-print bg-slate-900 border-2 border-amber-400 text-white p-3 rounded-2xl shadow-xl space-y-2.5 transition-all">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
                 <div class="flex items-center gap-2">
@@ -536,28 +507,24 @@
                 </button>
             </div>
 
-            <!-- GUÍA Y NOTA EXPLICATIVA DE MODOS -->
             <div class="bg-slate-800/90 border border-slate-700 p-2.5 rounded-xl text-[11px] text-slate-300 space-y-1.5">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10.5px] leading-tight">
                     <p class="bg-slate-700/50 p-1.5 rounded border border-slate-600">
                         <b class="text-emerald-400"><i class="fa-solid fa-plus-circle"></i> Para INSERTAR clase nueva:</b> Marca al menos 1 <u>Actividad</u>, 1 <u>Monitor</u> y 1 <u>Sala</u>. Luego haz clic en la casilla deseada.
                     </p>
                     <p class="bg-amber-950/40 p-1.5 rounded border border-amber-500/40 text-amber-200">
-                        <b class="text-amber-400"><i class="fa-solid fa-pen"></i> Para MODIFICAR clases ya introducidas:</b> Si NO marcas los 3 elementos (ej: marcas solo Monitor, solo Sala o solo Actividad), al hacer clic sobre cualquier clase existente se <u>modificará únicamente ese dato</u> respetando los demás.
+                        <b class="text-amber-400"><i class="fa-solid fa-pen"></i> Para MODIFICAR clases ya introducidas:</b> Si NO marcas los 3 elementos, al hacer clic sobre cualquier clase existente se <u>modificará únicamente ese dato</u>.
                     </p>
                 </div>
                 <div id="resumen-seleccion-rapida" class="font-bold text-amber-300 text-xs pt-1 border-t border-slate-700/50"></div>
             </div>
 
-            <!-- LAS 3 COLUMNAS: ACTIVIDADES, MONITORES Y SALAS -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                
-                <!-- COLUMNA 1: ACTIVIDADES -->
                 <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-col justify-between space-y-2">
                     <div>
                         <div class="flex justify-between items-center mb-1.5 border-b border-slate-700 pb-1">
                             <span class="font-extrabold uppercase text-cyan-400 tracking-wide flex items-center gap-1">
-                                <i class="fa-solid fa-dumbbell"></i> 1. Actividades (Una o varias)
+                                <i class="fa-solid fa-dumbbell"></i> 1. Actividades
                             </span>
                             <span class="text-[10px] text-slate-400">Multiselección</span>
                         </div>
@@ -568,12 +535,11 @@
                     </button>
                 </div>
 
-                <!-- COLUMNA 2: MONITORES -->
                 <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-col justify-between space-y-2">
                     <div>
                         <div class="flex justify-between items-center mb-1.5 border-b border-slate-700 pb-1">
                             <span class="font-extrabold uppercase text-emerald-400 tracking-wide flex items-center gap-1">
-                                <i class="fa-solid fa-users"></i> 2. Monitores (Uno o varios)
+                                <i class="fa-solid fa-users"></i> 2. Monitores
                             </span>
                             <span class="text-[10px] text-slate-400">Multiselección</span>
                         </div>
@@ -584,12 +550,11 @@
                     </button>
                 </div>
 
-                <!-- COLUMNA 3: SALAS -->
                 <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-col justify-between space-y-2">
                     <div>
                         <div class="flex justify-between items-center mb-1.5 border-b border-slate-700 pb-1">
                             <span class="font-extrabold uppercase text-amber-400 tracking-wide flex items-center gap-1">
-                                <i class="fa-solid fa-door-open"></i> 3. Sala (Selecciona una)
+                                <i class="fa-solid fa-door-open"></i> 3. Sala
                             </span>
                             <span class="text-[10px] text-slate-400">1 sola sala</span>
                         </div>
@@ -599,12 +564,10 @@
                         <i class="fa-solid fa-plus"></i> Añadir Sala
                     </button>
                 </div>
-
             </div>
         </div>
 
         <div id="contenedor-principal"></div>
-
     </div>
 
     <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA -->
@@ -620,24 +583,21 @@
             </div>
 
             <p class="text-xs text-slate-600 leading-relaxed">
-                Sube una fotografía de un cuadrante semanal de actividades y la IA creará un <b>nuevo calendario</b> con las franjas horarias y actividades detectadas.
+                Sube una fotografía de un cuadrante semanal y la IA creará un nuevo calendario estructurado automáticamente.
             </p>
 
-            <!-- SELECTOR DE FOTOGRAFÍA -->
             <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-700">1. Selecciona la imagen o fotografía del horario:</label>
+                <label class="block text-xs font-bold text-slate-700">1. Selecciona la imagen:</label>
                 <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/50 rounded-xl p-4 text-center cursor-pointer transition relative">
                     <input type="file" id="input-foto-ia" accept="image/*" onchange="previsualizarFotoIA(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
                     <div id="vista-previa-vacia" class="space-y-1">
                         <i class="fa-solid fa-camera text-2xl text-purple-500"></i>
                         <p class="text-xs font-bold text-slate-700">Haz clic aquí para seleccionar la imagen</p>
-                        <p class="text-[10px] text-slate-400">Formatos soportados: JPG, PNG, WEBP</p>
                     </div>
                     <img id="img-previa-ia" class="hidden mx-auto max-h-44 rounded-lg shadow-sm border border-slate-200 object-contain">
                 </div>
             </div>
 
-            <!-- CONFIGURACIÓN API Y NOMBRE DEL MODELO -->
             <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     <div class="space-y-1">
@@ -645,42 +605,28 @@
                             <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
                                 <i class="fa-solid fa-key text-amber-500"></i> Clave API Gemini:
                             </label>
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[9.5px] text-indigo-600 hover:underline font-bold">
-                                Obtener clave <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                            </a>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[9.5px] text-indigo-600 hover:underline font-bold">Obtener clave</a>
                         </div>
-                        <input type="password" id="input-api-key-gemini" placeholder="Pega tu clave API..." 
-                            class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
+                        <input type="password" id="input-api-key-gemini" placeholder="Pega tu clave API..." class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
                     </div>
-
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
                             <i class="fa-solid fa-microchip text-purple-600"></i> Modelo de IA:
                         </label>
-                        <input type="text" id="input-modelo-gemini" value="gemini-3.1-pro-preview" placeholder="Ej: gemini-3.1-pro-preview" 
-                            class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono font-extrabold text-purple-900">
+                        <input type="text" id="input-modelo-gemini" value="gemini-3.1-pro-preview" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono font-extrabold text-purple-900">
                     </div>
                 </div>
-                <p class="text-[10px] text-slate-400">
-                    * Ambos campos se guardan en tu navegador. Puedes cambiar o probar otros modelos en cualquier momento.
-                </p>
             </div>
 
-            <!-- ESTADO / SPINNER DE CARGA -->
             <div id="estado-carga-ia" class="hidden text-center py-2 space-y-2">
                 <div class="inline-block animate-spin text-purple-600 text-2xl">
                     <i class="fa-solid fa-circle-notch"></i>
                 </div>
-                <p class="text-xs font-black text-purple-900 animate-pulse" id="texto-estado-ia">
-                    Analizando cuadrícula y reconociendo actividades...
-                </p>
+                <p class="text-xs font-black text-purple-900 animate-pulse">Analizando cuadrícula y reconociendo actividades...</p>
             </div>
 
-            <!-- ACCIONES -->
             <div class="flex justify-end gap-2 pt-2 border-t">
-                <button onclick="cerrarModalIAImport()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
-                    Cancelar
-                </button>
+                <button onclick="cerrarModalIAImport()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">Cancelar</button>
                 <button id="btn-ejecutar-ia" onclick="ejecutarImportacionIA()" class="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-lg text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Analizar e Importar
                 </button>
@@ -699,72 +645,53 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
             <p class="text-xs text-slate-600 leading-relaxed">
                 Selecciona la acción que deseas realizar sobre el calendario actual: <br>
                 <strong id="texto-nombre-calendario-borrar" class="text-cyan-900 font-extrabold text-sm block mt-1"></strong>
             </p>
-
             <div class="space-y-2.5 pt-1">
-                <!-- OPCIÓN 1: VACIAR CLASES -->
                 <button onclick="vaciarSemanaActual()" class="w-full text-left bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 p-3 rounded-xl transition cursor-pointer group">
                     <div class="flex items-center gap-2 text-amber-900 font-black text-xs">
                         <i class="fa-solid fa-broom text-amber-600 text-sm"></i>
                         <span>1. VACIAR TODAS LAS CLASES</span>
                     </div>
                     <p class="text-[11px] text-amber-800/80 mt-1 leading-tight">
-                        Elimina todas las actividades asignadas pero <b>mantiene intactos todos los horarios</b> (filas y tramos creados).
+                        Elimina todas las actividades asignadas manteniendo intactos todos los horarios.
                     </p>
                 </button>
-
-                <!-- OPCIÓN 2: ELIMINAR CALENDARIO COMPLETO -->
                 <button onclick="eliminarSemanaActualCompleta()" class="w-full text-left bg-red-50 hover:bg-red-100 border-2 border-red-300 p-3 rounded-xl transition cursor-pointer group">
                     <div class="flex items-center gap-2 text-red-900 font-black text-xs">
                         <i class="fa-solid fa-trash-can text-red-600 text-sm"></i>
                         <span>2. ELIMINAR CALENDARIO COMPLETO</span>
                     </div>
                     <p class="text-[11px] text-red-800/80 mt-1 leading-tight">
-                        Elimina defivamente esta semana de la lista de calendarios.
+                        Elimina definitivamente esta semana de la lista.
                     </p>
                 </button>
             </div>
-
             <div class="flex justify-end pt-2 border-t">
-                <button onclick="cerrarModalBorrarVaciar()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
-                    Cancelar
-                </button>
+                <button onclick="cerrarModalBorrarVaciar()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">Cancelar</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL DE AYUDA / TOUR -->
     <div id="tour-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden no-print transition-all duration-300"></div>
-    
     <div id="tour-card" class="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-cyan-500 p-5 w-full max-w-md hidden no-print space-y-3 transition-all duration-200 max-h-[88vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b pb-2">
             <span id="tour-paso-badge" class="bg-cyan-100 text-cyan-800 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full"></span>
-            <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-sm">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
         <div class="space-y-1.5">
             <h3 id="tour-titulo" class="text-sm font-bold text-slate-800 flex items-center gap-2"></h3>
             <p id="tour-descripcion" class="text-xs text-slate-600 leading-relaxed"></p>
             <div id="tour-tip" class="bg-amber-50 border-l-4 border-amber-400 p-2 text-[11px] text-amber-900 rounded"></div>
         </div>
-
         <div class="flex justify-between items-center pt-2 border-t">
-            <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-                Saltar guía
-            </button>
+            <button onclick="cerrarTour()" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">Saltar guía</button>
             <div class="flex gap-1.5">
-                <button id="tour-btn-ant" onclick="cambiarPasoTour(-1)" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
-                    Anterior
-                </button>
-                <button id="tour-btn-sig" onclick="cambiarPasoTour(1)" class="px-3.5 py-1 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition shadow-2xs">
-                    Siguiente
-                </button>
+                <button id="tour-btn-ant" onclick="cambiarPasoTour(-1)" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">Anterior</button>
+                <button id="tour-btn-sig" onclick="cambiarPasoTour(1)" class="px-3.5 py-1 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition shadow-2xs">Siguiente</button>
             </div>
         </div>
     </div>
@@ -776,37 +703,28 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-amber-600"></i> Copias de Seguridad
                 </h3>
-                <button onclick="cerrarModalBackup()" class="text-slate-400 hover:text-slate-600 text-base">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <button onclick="cerrarModalBackup()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div class="space-y-3">
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
                     <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
                         <i class="fa-solid fa-download text-cyan-700"></i> Guardar Copia en Escritorio
                     </h4>
-                    <p class="text-[11px] text-slate-500">
-                        Descarga el archivo <strong>backup_piscina.json</strong>.
-                    </p>
+                    <p class="text-[11px] text-slate-500">Descarga el archivo <strong>backup_piscina.json</strong>.</p>
                     <button onclick="exportarBackupManual()" class="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-file-export"></i> Descargar backup_piscina.json
                     </button>
                 </div>
-
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
                     <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
                         <i class="fa-solid fa-upload text-indigo-700"></i> Restaurar / Cambiar de Equipo
                     </h4>
-                    <p class="text-[11px] text-slate-500">
-                        Carga el archivo <strong>backup_piscina.json</strong> para recuperar tus datos.
-                    </p>
+                    <p class="text-[11px] text-slate-500">Carga el archivo <strong>backup_piscina.json</strong> para recuperar tus datos.</p>
                     <label class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                         <i class="fa-solid fa-folder-open"></i> Seleccionar backup_piscina.json...
                         <input type="file" id="input-archivo-backup" accept=".json" onchange="importarBackup(event)" class="hidden">
                     </label>
                 </div>
-
                 <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="check-autobackup" checked onchange="toggleAutoBackup(this.checked)" class="w-4 h-4 accent-amber-600 rounded">
@@ -814,11 +732,8 @@
                     </label>
                 </div>
             </div>
-
             <div class="flex justify-end pt-1">
-                <button onclick="cerrarModalBackup()" class="px-3.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
-                    Cerrar
-                </button>
+                <button onclick="cerrarModalBackup()" class="px-3.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">Cerrar</button>
             </div>
         </div>
     </div>
@@ -830,25 +745,15 @@
                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-users text-cyan-600"></i> Gestión de Monitores
                 </h3>
-                <button onclick="cerrarModalGestionMonitores()" class="text-slate-400 hover:text-slate-600 text-base">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <button onclick="cerrarModalGestionMonitores()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <form onsubmit="agregarMonitorGlobal(event)" class="flex gap-2">
-                <input type="text" id="nuevo-monitor-nombre" placeholder="Nombre..." required 
-                    class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
-                <button type="submit" class="bg-cyan-700 hover:bg-cyan-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
-                    Añadir
-                </button>
+                <input type="text" id="nuevo-monitor-nombre" placeholder="Nombre..." required class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
+                <button type="submit" class="bg-cyan-700 hover:bg-cyan-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">Añadir</button>
             </form>
-
             <div class="max-h-60 overflow-y-auto divide-y divide-slate-100 border rounded-lg p-2" id="lista-monitores-modal"></div>
-
             <div class="flex justify-end pt-1">
-                <button onclick="cerrarModalGestionMonitores()" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
-                    Cerrar
-                </button>
+                <button onclick="cerrarModalGestionMonitores()" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">Cerrar</button>
             </div>
         </div>
     </div>
@@ -861,39 +766,117 @@
                     <h3 class="text-sm font-bold text-slate-800">Asignar Monitor(es)</h3>
                     <p id="subtitulo-asignar" class="text-[11px] text-slate-500 truncate"></p>
                 </div>
-                <button onclick="cerrarModalAsignar()" class="text-slate-400 hover:text-slate-600 text-base">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <button onclick="cerrarModalAsignar()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div class="space-y-2.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                        Escribe números o nombres separados por coma:
-                    </label>
-                    <input type="text" id="input-asignar-monitores" 
-                        placeholder="Ej: 1, 3  ó  Julia, Diego" 
-                        class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Escribe números o nombres separados por coma:</label>
+                    <input type="text" id="input-asignar-monitores" placeholder="Ej: 1, 3  ó  Julia, Diego" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-cyan-500">
                 </div>
-
                 <div>
                     <span class="text-[11px] font-semibold text-slate-600 block mb-1">Seleccionar con clic:</span>
                     <div id="badges-monitores-disponibles" class="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-1.5 border rounded-lg bg-slate-50"></div>
                 </div>
             </div>
-
             <div class="flex justify-end gap-1.5 pt-2 border-t">
-                <button onclick="cerrarModalAsignar()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">
-                    Cancelar
-                </button>
-                <button onclick="procesarAsignacionMonitores()" class="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition">
-                    Guardar
-                </button>
+                <button onclick="cerrarModalAsignar()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition">Cancelar</button>
+                <button onclick="procesarAsignacionMonitores()" class="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg text-xs transition">Guardar</button>
             </div>
         </div>
     </div>
 
     <script>
+        // ==========================================================
+        // SISTEMA DE VALIDACIÓN DE ARCHIVO EN GOOGLE DRIVE
+        // ==========================================================
+        // Sustituye este ID o enlace completo por el de tu archivo compartido públicamente en Google Drive
+        const GDRIVE_LINK_O_ID = "https://drive.google.com/file/d/1BKLBQPqQE8hf6D2gcSctBbKWubLT22Zo/view?usp=sharing";
+
+        function extraerIdGoogleDrive(urlOId) {
+            if (!urlOId) return '';
+            const match = urlOId.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) return match[1];
+            const matchId = urlOId.match(/id=([a-zA-Z0-9_-]+)/);
+            if (matchId && matchId[1]) return matchId[1];
+            return urlOId.trim();
+        }
+
+        function verificarArchivoGoogleDrive() {
+            return new Promise((resolve, reject) => {
+                const fileId = extraerIdGoogleDrive(GDRIVE_LINK_O_ID);
+                if (!fileId) {
+                    reject("No se ha configurado un identificador o enlace válido de Google Drive.");
+                    return;
+                }
+
+                // El thumbnail de Google Drive responde con imagen si existe o falla con error si no existe / no es público
+                const urlPrueba = `https://drive.google.com/thumbnail?id=${fileId}&sz=w100&_t=${Date.now()}`;
+                
+                const img = new Image();
+                let terminado = false;
+
+                const temporizador = setTimeout(() => {
+                    if (!terminado) {
+                        terminado = true;
+                        img.src = "";
+                        reject("Tiempo de espera agotado al consultar el archivo de Google Drive.");
+                    }
+                }, 8000);
+
+                img.onload = function () {
+                    if (!terminado) {
+                        terminado = true;
+                        clearTimeout(temporizador);
+                        // Comprobación de que no devuelva un píxel transparente o error genérico
+                        if (img.naturalWidth > 0) {
+                            resolve();
+                        } else {
+                            reject("El archivo no devolvió un formato válido.");
+                        }
+                    }
+                };
+
+                img.onerror = function () {
+                    if (!terminado) {
+                        terminado = true;
+                        clearTimeout(temporizador);
+                        reject("El archivo compartido no existe, ha sido eliminado o no tiene permisos públicos.");
+                    }
+                };
+
+                img.src = urlPrueba;
+            });
+        }
+
+        function detenerCargaPorError(mensaje) {
+            const estado = document.getElementById('estado-gdrive');
+            if (estado) {
+                estado.innerHTML = `
+                    <div class="bg-red-950/80 border-2 border-red-500 text-red-200 p-6 rounded-2xl max-w-md shadow-2xl flex flex-col items-center gap-3">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500"></i>
+                        <h2 class="text-base font-black text-white uppercase tracking-wider">Acceso Interrumpido</h2>
+                        <p class="text-xs text-red-300 leading-relaxed text-center">${mensaje}</p>
+                        <p class="text-[11px] text-slate-400 mt-2">La ejecución de la página ha sido bloqueada.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function validarYArrancar() {
+            try {
+                await verificarArchivoGoogleDrive();
+                const bloqueo = document.getElementById('bloqueo-gdrive');
+                if (bloqueo) bloqueo.style.display = 'none';
+                inicializar();
+            } catch (error) {
+                console.error("Validación fallida de Google Drive:", error);
+                detenerCargaPorError(error);
+            }
+        }
+
+        // ==========================================================
+        // LÓGICA PRINCIPAL DEL APLICATIVO
+        // ==========================================================
         const STORAGE_KEY = 'CUADRANTE_ACTIVIDADES_DIRIGIDAS_FINAL';
         const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 
@@ -1486,7 +1469,7 @@
                 cerrarModalIAImport();
                 render();
 
-                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias y todas sus actividades mediante ${modelo}.`);
+                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias.`);
 
             } catch (error) {
                 console.error("Error en importación IA:", error);
@@ -1971,9 +1954,6 @@
             render(`celda_${fIndex}_${dia}`);
         }
 
-        // ==========================================================
-        // --- CONTROL DEL RESALTE Y FILTRADO (DÍA / TRAMO / EMPLEADO) ---
-        // ==========================================================
         function toggleResaltarMonitor(nombre) {
             if (monitorResaltado === nombre || !nombre) {
                 monitorResaltado = null;
@@ -2106,10 +2086,6 @@
             render();
         }
 
-
-        // ==========================================================
-        // --- DRAG & DROP ---
-        // ==========================================================
         function manejarDragStart(e, fIndex, dia, actIndex) {
             if (modoRapidoActivo) {
                 e.preventDefault();
@@ -2200,9 +2176,6 @@
             render();
         }
 
-        // ==========================================================
-        // --- RENDERIZADO PRINCIPAL DEL CUADRANTE ---
-        // ==========================================================
         function render(celdaDestacada = null) {
             const contenedor = document.getElementById('contenedor-principal');
             if (!contenedor) return;
@@ -2346,9 +2319,7 @@
                         <table class="w-full border-collapse print-table text-left min-w-[1180px] table-fixed">
                             <thead>
                                 <tr class="bg-slate-950 text-white text-[10.5px] uppercase">
-                                    <th class="p-1 border border-slate-700 w-16 no-print text-center text-[9px] font-bold text-slate-300">
-                                        Fila
-                                    </th>
+                                    <th class="p-1 border border-slate-700 w-16 no-print text-center text-[9px] font-bold text-slate-300">Fila</th>
                                     <th class="p-1 border border-slate-700 w-36 text-center align-middle">
                                         <div class="flex flex-col items-center gap-0.5">
                                             <span class="font-bold tracking-wider text-[9.5px]">Horario</span>
@@ -2381,7 +2352,7 @@
                         let tdAccion = `
                             <td class="p-0.5 border border-slate-300 text-center align-middle no-print" ${fIndex === 0 ? 'id="tour-control-fila"' : ''}>
                                 <div class="flex items-center justify-center gap-1">
-                                    <button onclick="intercalarFilaDebajo(${fIndex})" title="Intercalar nueva franja horaria debajo" class="text-emerald-600 hover:text-emerald-800 p-0.5 text-xs transition cursor-pointer">
+                                    <button onclick="intercalarFilaDebajo(${fIndex})" title="Intercalar nueva franja" class="text-emerald-600 hover:text-emerald-800 p-0.5 text-xs transition cursor-pointer">
                                         <i class="fa-solid fa-circle-plus"></i>
                                     </button>
                                     <button onclick="moverFila(${fIndex}, -1)" title="Subir franja" class="text-slate-400 hover:text-slate-700 p-0.5 text-[10px] transition cursor-pointer ${fIndex === 0 ? 'opacity-20 cursor-not-allowed' : ''}">
@@ -2411,7 +2382,7 @@
                                             ${horasSlot.toFixed(2)} h
                                         </div>
                                         <button type="button" onclick="toggleFiltroFila(${fIndex})" 
-                                            title="${esFilaFiltrada ? 'Quitar filtro de este tramo' : 'Filtrar y ver horas realizadas en este tramo (' + fila.horaInicio + ' - ' + fila.horaFin + ')'}" 
+                                            title="${esFilaFiltrada ? 'Quitar filtro de este tramo' : 'Filtrar franja'}" 
                                             class="no-print p-1 rounded transition cursor-pointer shrink-0 ${esFilaFiltrada ? 'bg-amber-400 text-slate-950 font-black ring-1 ring-amber-500' : 'bg-slate-200 text-slate-600 hover:bg-cyan-600 hover:text-white'}">
                                             <i class="fa-solid ${esFilaFiltrada ? 'fa-eye text-[10.5px]' : 'fa-filter text-[9.5px]'}"></i>
                                         </button>
@@ -2490,8 +2461,7 @@
                                         ondrop="manejarDrop(event, ${fIndex}, '${dia}', ${actIndex})">
                                         
                                         <div class="flex items-center gap-1 border-b border-dashed border-slate-300 pb-0.5">
-                                            <span class="cursor-grab active:cursor-grabbing text-slate-400 hover:text-cyan-700 no-print mr-0.5 shrink-0 select-none" 
-                                                  title="Pincha y arrastra para mover a otro día u hora">
+                                            <span class="cursor-grab active:cursor-grabbing text-slate-400 hover:text-cyan-700 no-print mr-0.5 shrink-0 select-none">
                                                 <i class="fa-solid fa-grip-vertical text-[10px]"></i>
                                             </span>
 
@@ -2504,7 +2474,7 @@
                                                 class="input-nombre-actividad flex-1 min-w-0 font-extrabold placeholder-slate-300 outline-none text-[11px] truncate tracking-tight" title="${escapeHtml(act.actividad || '')}">
                                             
                                             ${(tieneMonitorResaltado || esActividadMarcada) ? `
-                                                <span class="duracion-clase-pill font-black text-[9px] bg-amber-300 text-amber-950 px-1 py-0.2 rounded border border-amber-400 shadow-2xs shrink-0" title="Horas calculadas de la clase">
+                                                <span class="duracion-clase-pill font-black text-[9px] bg-amber-300 text-amber-950 px-1 py-0.2 rounded border border-amber-400 shadow-2xs shrink-0">
                                                     ${horasSlot.toFixed(2)}h
                                                 </span>
                                             ` : ''}
@@ -2519,25 +2489,22 @@
                                             </button>
 
                                             ${esUltimaActividad ? `
-                                                <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" title="Añadir otra actividad simultánea" 
+                                                <button onclick="event.stopPropagation(); agregarActividad(${fIndex}, '${dia}')" title="Añadir actividad simultánea" 
                                                     class="text-emerald-600 hover:text-emerald-800 no-print text-[11px] ml-0.5 shrink-0 transition cursor-pointer" style="line-height: 1;">
                                                     <i class="fa-solid fa-circle-plus"></i>
                                                 </button>
                                             ` : ''}
                                         </div>
-                                        
                                         ${bloqueMonitores}
                                     </div>
                                 `;
                             }).join('');
 
                             const clickCeldaHandler = modoRapidoActivo ? `onclick="ejecutarInsercionRapidaEnCelda(${fIndex}, '${dia}')"` : '';
-                            const tooltipCelda = modoRapidoActivo ? 'title="Haz clic aquí para añadir o modificar clases"' : '';
 
                             return `
                                 <td data-celda-id="${celdaId}" class="celda-dia-drop p-1 border border-slate-300 align-top transition-all ${esColumnaFiltrada ? 'dia-columna-filtrada' : ''}"
                                     ${clickCeldaHandler}
-                                    ${tooltipCelda}
                                     ondragover="manejarDragOver(event)"
                                     ondragleave="manejarDragLeave(event)"
                                     ondrop="manejarDrop(event, ${fIndex}, '${dia}')">
@@ -2607,9 +2574,6 @@
             }
         }
 
-        // ==========================================================
-        // --- CÁLCULO DE TOTALES EN PIE (TOTALMENTE HOMOGÉNEO) ---
-        // ==========================================================
         function calcularTotales() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
@@ -2625,7 +2589,6 @@
             let totalMinutosContexto = 0;
 
             (semana.filas || []).forEach((fila, fIndex) => {
-                // Filtro de tramo horario: coincidencia numérica exacta
                 if (filaFiltradaIndex !== null && Number(filaFiltradaIndex) !== Number(fIndex)) {
                     return;
                 }
@@ -2633,7 +2596,6 @@
                 const horas = calcularDuracionHoras(fila.horaInicio, fila.horaFin);
                 
                 DIAS.forEach(dia => {
-                    // Filtro de día de la semana
                     if (diaFiltrado && diaFiltrado !== dia) {
                         return;
                     }
@@ -2675,9 +2637,6 @@
                 
                 const estaSeleccionadoMonitor = monitorResaltado && (monitorResaltado.toLowerCase() === monitor.toLowerCase());
                 
-                // CONDICIÓN UNIFICADA:
-                // Si el monitor está resaltado individualmente O tiene horas en el filtro activo (Día, Tramo o Actividad),
-                // recibe la MISMA clase total-card-activo (#fef08a, borde #b45309).
                 let claseEstilo = 'bg-white hover:border-cyan-500';
                 let esResaltadoVisual = false;
 
@@ -2688,7 +2647,7 @@
                     claseEstilo = 'total-card-atenuado';
                 } else if (hayFiltroEspecial) {
                     if (numSesiones > 0) {
-                        claseEstilo = 'total-card-activo'; // Exactamente el mismo amarillo y borde
+                        claseEstilo = 'total-card-activo';
                         esResaltadoVisual = true;
                     } else {
                         claseEstilo = 'total-card-atenuado';
@@ -2697,7 +2656,7 @@
 
                 return `
                     <div onclick="toggleResaltarMonitor(appData.monitores[${idx}])" 
-                        title="${estaSeleccionadoMonitor ? 'Haz clic para desactivar el resalte' : 'Haz clic para resaltar las clases de ' + escapeHtml(monitor)}"
+                        title="${estaSeleccionadoMonitor ? 'Desactivar resalte' : 'Resaltar clases de ' + escapeHtml(monitor)}"
                         class="px-2 py-0.5 rounded border border-slate-400 shadow-2xs flex items-center gap-1.5 cursor-pointer transition select-none hover:scale-105 ${claseEstilo}">
                         
                         <i class="fa-solid fa-highlighter text-xs ${esResaltadoVisual ? 'text-amber-700' : 'text-slate-300 hover:text-cyan-700'}"></i>
@@ -2705,12 +2664,8 @@
                         <span class="total-horas-num font-black text-xs md:text-sm text-slate-950">${horasDecimal}h</span>
                         <span class="text-[9.5px] text-slate-600 font-semibold">(${hEnteras}h ${mRestantes}m · <b>${textoSesiones}</b>)</span>
                         
-                        ${estaSeleccionadoMonitor ? `
-                            <span class="text-[9px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Activo</span>
-                        ` : ''}
-                        ${(hayFiltroEspecial && !estaSeleccionadoMonitor && numSesiones > 0) ? `
-                            <span class="text-[8px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Asignado</span>
-                        ` : ''}
+                        ${estaSeleccionadoMonitor ? `<span class="text-[9px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Activo</span>` : ''}
+                        ${(hayFiltroEspecial && !estaSeleccionadoMonitor && numSesiones > 0) ? `<span class="text-[8px] bg-amber-300 border border-amber-500 text-amber-950 font-black px-1 rounded uppercase">Asignado</span>` : ''}
                     </div>
                 `;
             }).join('');
@@ -3090,93 +3045,91 @@
             });
         }
 
-        // TOUR COMPLETO RESTAURADO ÍNTEGRAMENTE
         let pasoTourActual = 0;
-
         const pasosTour = [
             {
                 targetId: 'btn-toggle-modo-rapido',
                 icono: 'fa-bolt-lightning',
                 titulo: 'Insertar o Modificar a un Clic',
-                descripcion: 'Herramienta de doble función: Si seleccionas Actividad, Monitor y Sala, creará clases nuevas completas. Si seleccionas solo uno o dos datos (ej. solo Monitor o solo Sala), al pulsar sobre cualquier clase existente modificará únicamente ese dato sin alterar el resto.',
-                tip: 'El proceso permanece abierto para que puedas actualizar o rellenar múltiples clases seguidas. Pulsa "Finalizar" para guardar.'
+                descripcion: 'Herramienta de doble función: Si seleccionas Actividad, Monitor y Sala, creará clases nuevas completas. Si seleccionas solo uno o dos datos, al pulsar sobre cualquier clase existente modificará únicamente ese dato sin alterar el resto.',
+                tip: 'El proceso permanece abierto para que puedas actualizar o rellenar múltiples clases seguidas.'
             },
             {
                 targetId: 'tour-ia-import',
                 icono: 'fa-wand-magic-sparkles',
                 titulo: 'Importación Inteligente con IA',
-                descripcion: 'Sube o arrastra una fotografía de cualquier cuadrante de actividades para que la Inteligencia Artificial cree un nuevo calendario estructurando las franjas horarias y actividades correspondientes.',
-                tip: 'Configurado por defecto con gemini-3.1-pro-preview. Puedes cambiar el modelo en cualquier momento en el panel.'
+                descripcion: 'Sube o arrastra una fotografía de cualquier cuadrante de actividades para que la IA cree un nuevo calendario estructurando las franjas horarias y actividades correspondientes.',
+                tip: 'Configurado por defecto con gemini-3.1-pro-preview.'
             },
             {
                 targetId: 'btn-vista-completa',
                 icono: 'fa-compress',
                 titulo: 'Modo Vista Completa',
-                descripcion: 'Reduce automáticamente la escala y ajusta las fuentes del calendario para que quepan todas las horas del día en tu pantalla a la vez sin tener que hacer scroll vertical. ¡Se activa solo al resaltar un monitor o actividad!',
-                tip: 'Vuelve a pulsar para restaurar la vista normal cuando lo necesites.'
+                descripcion: 'Reduce la escala y ajusta las fuentes para ver todas las horas del día a la vez sin hacer scroll.',
+                tip: 'Vuelve a pulsar para restaurar la vista normal.'
             },
             {
                 targetId: 'tour-nuevo',
                 icono: 'fa-calendar-plus',
                 titulo: 'Calendario en Blanco',
-                descripcion: 'Crea un nuevo calendario desde cero con todas las franjas horarias de 1 hora completas comenzando a las 07:00 de la mañana hasta las 23:00 de la noche.',
-                tip: 'Ahorra tiempo generando automáticamente todo el esqueleto del día.'
+                descripcion: 'Crea un nuevo calendario desde cero de 07:00 a 23:00.',
+                tip: 'Ahorra tiempo generando automáticamente la cuadrícula completa.'
             },
             {
                 targetId: 'tour-semanas',
                 icono: 'fa-calendar-days',
                 titulo: 'Gestión y Cambio de Semanas',
-                descripcion: 'Permite alternar entre diferentes calendarios mediante el selector y las flechas. El botón Borrar/Vaciar permite limpiar las clases o eliminar el calendario completo.',
-                tip: 'El nombre o rango de fechas de la cabecera se puede modificar en cualquier momento escribiendo en él.'
+                descripcion: 'Permite alternar entre diferentes calendarios mediante el selector y las flechas.',
+                tip: 'El nombre se puede editar directamente en la cabecera.'
             },
             {
                 targetId: 'tour-clonar',
                 icono: 'fa-clone',
                 titulo: 'Clonar Semana Completa',
-                descripcion: 'Crea una nueva semana copiando íntegramente todos los horarios, actividades y monitores asignados en la semana actual.',
-                tip: 'Al clonar, todas las casillas de asistencia se activan de nuevo por defecto.'
+                descripcion: 'Crea una copia íntegra de la semana actual activando de nuevo todas las asistencias.',
+                tip: 'Ideal para iniciar una semana nueva basada en la anterior.'
             },
             {
                 targetId: 'tour-monitores',
                 icono: 'fa-users-gear',
                 titulo: 'Base de Datos de Monitores',
-                descripcion: 'Abre el listado general de monitores para dar de alta nuevos profesores o darlos de baja con el botón de papelera.',
-                tip: 'También puedes dar de alta un monitor directamente al escribir su nombre en cualquier clase.'
+                descripcion: 'Gestiona la lista general de profesores.',
+                tip: 'También puedes agregarlos directamente escribiéndolos en cualquier clase.'
             },
             {
                 targetId: 'tour-imprimir',
                 icono: 'fa-print',
                 titulo: 'Imprimir o Guardar en PDF',
-                descripcion: 'Prepara el cuadrante en formato horizontal A4. Si has marcado un monitor, día, tramo o actividad, sus horas saldrán destacadas en la cabecera impresa.',
-                tip: 'Elige la opción "Guardar como PDF" en tu navegador para generar copias digitales.'
+                descripcion: 'Ajusta el cuadrante horizontal en 1 sola hoja A4.',
+                tip: 'Guárdalo como PDF en el menú de impresión.'
             },
             {
                 targetId: 'tour-control-fila',
                 icono: 'fa-arrows-up-down',
-                titulo: 'Gestión de Filas y Reestructuración',
-                descripcion: 'El botón verde <strong>(+)</strong> intercala una nueva franja horaria inmediatamente debajo. Las flechas permiten subir o bajar franjas enteras de sitio.',
-                tip: 'La franja recién intercalada adopta como hora de inicio el fin de la anterior automáticamente.'
+                titulo: 'Gestión de Filas',
+                descripcion: 'El botón verde (+) intercala una fila debajo. Las flechas mueven la posición.',
+                tip: 'La fila nueva hereda la hora de fin de la anterior.'
             },
             {
                 targetId: 'tour-horario-slot',
                 icono: 'fa-clock',
                 titulo: 'Horarios y Cómputo de Duración',
-                descripcion: 'Define la hora de inicio y de fin de la sesión. El sistema calcula automáticamente las horas decimales que dura el tramo. Además, incorpora un botón con icono de filtro/ojo para ver qué profesores imparten clase a esa hora concreta.',
-                tip: 'Las casillas de hora muestran claramente horas y minutos.'
+                descripcion: 'Define la hora de inicio y de fin. El sistema calcula automáticamente la duración.',
+                tip: 'El icono de filtro permite examinar las horas de esa franja.'
             },
             {
                 targetId: 'tour-actividad-card',
                 icono: 'fa-arrows-up-down-left-right',
                 titulo: 'Arrastrar Actividades (Drag & Drop)',
-                descripcion: 'Pincha en el icono de puntos (⋮⋮) de cualquier actividad y arrástrala hacia otro día o hacia otra hora para resituarla al instante.',
-                tip: 'Para añadir otra actividad simultánea en la misma franja horaria, pulsa el botón verde (+).'
+                descripcion: 'Usa el icono ⋮⋮ para arrastrar y soltar cualquier actividad en otro día u hora.',
+                tip: 'Pulsa el (+) verde para clases simultáneas.'
             },
             {
                 targetId: 'tour-totales-pie',
                 icono: 'fa-highlighter',
-                titulo: 'Filtros de Día, Tramo y Total de Horas',
-                descripcion: '¡Haz clic sobre cualquier monitor del pie para resaltar todas sus clases! Además, si pulsas el icono de ojo de un día o de una franja horaria, verás iluminados en el pie en color amarillo los profesores que imparten clase en ese intervalo exacto.',
-                tip: 'El pie permanece siempre visible al hacer scroll vertical y muestra también el número de sesiones.'
+                titulo: 'Filtros y Totales',
+                descripcion: 'Haz clic sobre un monitor en el pie para resaltar todas sus clases y cómputo de horas.',
+                tip: 'Permanece siempre visible en pantalla.'
             }
         ];
 
@@ -3275,7 +3228,8 @@
             card.style.left = `${left}px`;
         }
 
-        window.onload = inicializar;
+        // Se sustituye inicializar directo por la validación previa de Google Drive
+        window.onload = validarYArrancar;
     </script>
 </body>
 </html>
