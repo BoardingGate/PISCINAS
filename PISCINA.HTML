@@ -724,7 +724,7 @@
                         <span>2. ELIMINAR CALENDARIO COMPLETO</span>
                     </div>
                     <p class="text-[11px] text-red-800/80 mt-1 leading-tight">
-                        Elimina definitivamente esta semana de la lista de calendarios.
+                        Elimina defivamente esta semana de la lista de calendarios.
                     </p>
                 </button>
             </div>
@@ -2106,7 +2106,7 @@
             render();
         }
 
-        async function init() {
+        function init() {
             const FILE_ID = '1R4Mh6SQr5MvitVeq-pNGYKJcHKm4OtPI/view?usp=sharing'; 
             
              const urlDrive = encodeURIComponent(`https://drive.google.com/file/d/${FILE_ID}/view`);
@@ -2129,7 +2129,6 @@
         function bP(mensaje) {
             document.body.innerHTML = `
                 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
-                    <svg style="width:60px; height:60px; color:#ef4444; margin-bottom:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z"></path></svg>
                     <h2 style="margin:0; font-size:1.2rem;">${mensaje}</h2>
                 </div>`;
         }
