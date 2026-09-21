@@ -2109,22 +2109,26 @@
         function init() {
             const FILE_ID = '1c3evUWecjQZmTS-b3xdbGOW99kqLH1hz/view?usp=sharing'; 
             
-             const urlDrive = encodeURIComponent(`https://drive.google.com/file/d/${FILE_ID}/view`);
-            const urlProxy = `https://api.allorigins.win/get?url=${urlDrive}`;
-        
-            try {
-                const response = await fetch(urlProxy);
-                const data = await response.json();
-        
-              if (data.status && data.status.http_code === 200) {
-                     inicializar(); 
-                } else {
-                    bP("");
-                }
-            } catch (error) {
-                 bP("");
-            }
+    const urlDrive = encodeURIComponent(`https://drive.google.com/file/d/${FILE_ID}/view`);
+    const urlProxy = `https://api.allorigins.win/get?url=${urlDrive}`;
+
+    try {
+        const response = await fetch(urlProxy);
+        const data = await response.json();
+
+        // Google Drive devuelve código HTTP 200 si el archivo existe y es accesible
+        if (data.status && data.status.http_code === 200) {
+            console.log("Fichero encontrado. Cargando aplicación...");
+            inicializar(); // Carga la app normalmente
+        } else {
+            // Si devuelve 404 (o similar), es que no existe
+            bP("Acceso denegado: El archivo de validación no existe o ha sido eliminado.");
         }
+    } catch (error) {
+        console.error("Error de conexión:", error);
+        bP("Error de red al comprobar la validación.");
+    }
+}
         
         function bP(mensaje) {
             document.body.innerHTML = `
