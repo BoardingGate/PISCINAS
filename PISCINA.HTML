@@ -538,36 +538,71 @@
         <div id="contenedor-principal"></div>
     </div>
 
-    <!-- MODAL IMPORTACIÓN INTELIGENTE CON IA -->
+<!-- MODAL IMPORTACIÓN Y OPTIMIZACIÓN INTELIGENTE CON IA -->
     <div id="modal-ia-import" class="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center z-50 hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-5 space-y-3.5 max-h-[92vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl p-5 space-y-3.5 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-sm md:text-base font-black text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Importar Calendario desde Foto con IA
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Asistente de Inteligencia Artificial (Gemini)
                 </h3>
                 <button onclick="cerrarModalIAImport()" class="text-slate-400 hover:text-slate-600 text-base cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <p class="text-xs text-slate-600 leading-relaxed">
-                Sube una fotografía de un cuadrante semanal y la IA creará un nuevo calendario estructurado automáticamente.
-            </p>
+            <!-- SELECTOR DE PESTAÑAS / MODOS -->
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
+                <button id="tab-ia-foto" type="button" onclick="cambiarModoIA('foto')" 
+                    class="py-1.5 px-2 rounded-lg transition flex items-center justify-center gap-1.5 bg-white text-purple-900 shadow-xs cursor-pointer">
+                    <i class="fa-solid fa-camera"></i> 1. Importar desde Foto
+                </button>
+                <button id="tab-ia-prompt" type="button" onclick="cambiarModoIA('prompt')" 
+                    class="py-1.5 px-2 rounded-lg transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-purple-900 cursor-pointer">
+                    <i class="fa-solid fa-arrows-split-up-and-left"></i> 2. Reorganizar Actual con Prompt
+                </button>
+            </div>
 
-            <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-700">1. Selecciona la imagen:</label>
+            <!-- CUERPO MODO 1: FOTO -->
+            <div id="cuerpo-ia-foto" class="space-y-2">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Sube una fotografía de un cuadrante físico o captura digital y la IA lo transcribirá a un nuevo calendario estructurado.
+                </p>
                 <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/50 rounded-xl p-4 text-center cursor-pointer transition relative">
                     <input type="file" id="input-foto-ia" accept="image/*" onchange="previsualizarFotoIA(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
                     <div id="vista-previa-vacia" class="space-y-1">
                         <i class="fa-solid fa-camera text-2xl text-purple-500"></i>
                         <p class="text-xs font-bold text-slate-700">Haz clic aquí para seleccionar la imagen</p>
                     </div>
-                    <img id="img-previa-ia" class="hidden mx-auto max-h-44 rounded-lg shadow-sm border border-slate-200 object-contain">
+                    <img id="img-previa-ia" class="hidden mx-auto max-h-40 rounded-lg shadow-sm border border-slate-200 object-contain">
                 </div>
             </div>
 
-            <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <!-- CUERPO MODO 2: REORGANIZAR CON PROMPT -->
+            <div id="cuerpo-ia-prompt" class="space-y-2 hidden">
+                <div class="bg-indigo-50 border border-indigo-200 p-2.5 rounded-xl text-xs text-indigo-950 flex items-center justify-between">
+                    <span>Calendario base: <strong id="nombre-semana-ia-prompt" class="text-purple-900 font-black"></strong></span>
+                    <span class="text-[10px] bg-indigo-200/80 px-2 py-0.5 rounded-full font-bold">Crea una nueva copia</span>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                            <i class="fa-solid fa-message text-indigo-600"></i> Instrucciones / Criterios para la IA:
+                        </label>
+                        <button type="button" onclick="restablecerPromptPorDefecto()" class="text-[10px] text-indigo-600 hover:underline font-bold cursor-pointer">
+                            Restaurar prompt por defecto
+                        </button>
+                    </div>
+                    <textarea id="input-prompt-ia" rows="5" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white leading-relaxed text-slate-800 font-medium shadow-2xs"></textarea>
+                    <p class="text-[10.5px] text-slate-500">
+                        La IA analizará todas las actividades, monitores y franjas del calendario actual y generará una versión reestructurada según tus indicaciones.
+                    </p>
+                </div>
+            </div>
+
+            <!-- CONFIGURACIÓN API (COMÚN) -->
+            <div class="space-y-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div class="space-y-1">
                         <div class="flex justify-between items-center">
                             <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
@@ -575,28 +610,31 @@
                             </label>
                             <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[9.5px] text-indigo-600 hover:underline font-bold">Obtener clave</a>
                         </div>
-                        <input type="password" id="input-api-key-gemini" placeholder="Pega tu clave API..." class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
+                        <input type="password" id="input-api-key-gemini" placeholder="Pega tu clave API..." class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono">
                     </div>
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
-                            <i class="fa-solid fa-microchip text-purple-600"></i> Modelo de IA:
+                            <i class="fa-solid fa-microchip text-purple-600"></i> Modelo IA:
                         </label>
-                        <input type="text" id="input-modelo-gemini" value="gemini-3.1-pro-preview" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono font-extrabold text-purple-900">
+                        <input type="text" id="input-modelo-gemini" value="gemini-3.1-pro-preview" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:ring-2 focus:ring-purple-400 bg-white font-mono font-extrabold text-purple-900">
                     </div>
                 </div>
             </div>
 
-            <div id="estado-carga-ia" class="hidden text-center py-2 space-y-2">
+            <!-- ESTADO DE CARGA -->
+            <div id="estado-carga-ia" class="hidden text-center py-2.5 space-y-2">
                 <div class="inline-block animate-spin text-purple-600 text-2xl">
                     <i class="fa-solid fa-circle-notch"></i>
                 </div>
-                <p class="text-xs font-black text-purple-900 animate-pulse">Analizando cuadrícula y reconociendo actividades...</p>
+                <p id="texto-carga-ia" class="text-xs font-black text-purple-900 animate-pulse">Procesando solicitud con IA...</p>
             </div>
 
+            <!-- BOTONES ACCIÓN -->
             <div class="flex justify-end gap-2 pt-2 border-t">
                 <button onclick="cerrarModalIAImport()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">Cancelar</button>
-                <button id="btn-ejecutar-ia" onclick="ejecutarImportacionIA()" class="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-lg text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Analizar e Importar
+                <button id="btn-ejecutar-ia" onclick="ejecutarAccionIA()" class="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-lg text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span id="txt-btn-ejecutar-ia">Analizar e Importar</span>
                 </button>
             </div>
         </div>
@@ -1211,24 +1249,6 @@
             render();
         }
 
-        function abrirModalIAImport() {
-            const apiKeyGuardada = localStorage.getItem('GEMINI_API_KEY') || '';
-            const modeloGuardado = localStorage.getItem('GEMINI_MODEL') || 'gemini-3.1-pro-preview';
-            document.getElementById('input-api-key-gemini').value = apiKeyGuardada;
-            document.getElementById('input-modelo-gemini').value = modeloGuardado;
-            document.getElementById('input-foto-ia').value = '';
-            document.getElementById('img-previa-ia').classList.add('hidden');
-            document.getElementById('vista-previa-vacia').classList.remove('hidden');
-            document.getElementById('estado-carga-ia').classList.add('hidden');
-            document.getElementById('btn-ejecutar-ia').disabled = false;
-            imagenBase64IA = null;
-            document.getElementById('modal-ia-import').classList.remove('hidden');
-        }
-
-        function cerrarModalIAImport() {
-            document.getElementById('modal-ia-import').classList.add('hidden');
-        }
-
         function previsualizarFotoIA(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1249,20 +1269,82 @@
             reader.readAsDataURL(file);
         }
 
-        async function ejecutarImportacionIA() {
-            if (!imagenBase64IA) {
-                alert('Por favor, selecciona primero una fotografía o captura del horario.');
-                return;
+// ==========================================
+        // GESTIÓN DE IA (IMPORTACIÓN Y REORGANIZACIÓN)
+        // ==========================================
+
+        let modoIASeleccionado = 'foto'; // 'foto' o 'prompt'
+
+        const PROMPT_REORGANIZACION_POR_DEFECTO = 
+`Reorganiza este cuadrante semanal aplicando una planificación óptima, pedagógica y ergonómica:
+1. EQUILIBRIO DE DISCIPLINAS: Alterna actividades de alta intensidad/cardio (Ciclo, Body Combat, Zumba) con actividades de fuerza o cuerpo-mente (Pilates, Body Pump, Core, Balance, Estiramientos), evitando sobrecargar los mismos grupos musculares dos días seguidos.
+2. DISTRIBUCIÓN HORARIA LÓGICA: Ubica actividades suaves/moderadas a primera hora de la mañana y de mayor intensidad o desestresantes a media tarde/noche.
+3. REPARTO EQUITATIVO DE MONITORES: Balancea las horas totales entre los monitores disponibles, garantizando pausas lógicas entre sus sesiones continuas para evitar fatiga.
+4. CONTROL ESTRICTO DE SALAS: Asegura que no coincidan dos actividades en la misma sala/vaso a la misma hora exacta.
+5. CONSERVACIÓN DE LA ESTRUCTURA: Mantén la esencia de las actividades y monitores existentes, optimizando sus franjas y asignaciones.`;
+
+        function restablecerPromptPorDefecto() {
+            document.getElementById('input-prompt-ia').value = PROMPT_REORGANIZACION_POR_DEFECTO;
+        }
+
+        function cambiarModoIA(modo) {
+            modoIASeleccionado = modo;
+            const tabFoto = document.getElementById('tab-ia-foto');
+            const tabPrompt = document.getElementById('tab-ia-prompt');
+            const cuerpoFoto = document.getElementById('cuerpo-ia-foto');
+            const cuerpoPrompt = document.getElementById('cuerpo-ia-prompt');
+            const txtBtn = document.getElementById('txt-btn-ejecutar-ia');
+
+            if (modo === 'foto') {
+                tabFoto.className = "py-1.5 px-2 rounded-lg transition flex items-center justify-center gap-1.5 bg-white text-purple-900 shadow-xs cursor-pointer";
+                tabPrompt.className = "py-1.5 px-2 rounded-lg transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-purple-900 cursor-pointer";
+                cuerpoFoto.classList.remove('hidden');
+                cuerpoPrompt.classList.add('hidden');
+                txtBtn.textContent = 'Analizar e Importar Foto';
+            } else {
+                tabPrompt.className = "py-1.5 px-2 rounded-lg transition flex items-center justify-center gap-1.5 bg-white text-purple-900 shadow-xs cursor-pointer";
+                tabFoto.className = "py-1.5 px-2 rounded-lg transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-purple-900 cursor-pointer";
+                cuerpoFoto.classList.add('hidden');
+                cuerpoPrompt.classList.remove('hidden');
+                txtBtn.textContent = 'Crear Calendario Reorganizado';
+                
+                const semanaActual = obtenerSemanaActiva();
+                document.getElementById('nombre-semana-ia-prompt').textContent = semanaActual ? `"${semanaActual.rango}"` : 'Calendario Actual';
+            }
+        }
+
+        function abrirModalIAImport() {
+            const apiKeyGuardada = localStorage.getItem('GEMINI_API_KEY') || '';
+            const modeloGuardado = localStorage.getItem('GEMINI_MODEL') || 'gemini-3.1-pro-preview';
+            document.getElementById('input-api-key-gemini').value = apiKeyGuardada;
+            document.getElementById('input-modelo-gemini').value = modeloGuardado;
+            document.getElementById('input-foto-ia').value = '';
+            document.getElementById('img-previa-ia').classList.add('hidden');
+            document.getElementById('vista-previa-vacia').classList.remove('hidden');
+            document.getElementById('estado-carga-ia').classList.add('hidden');
+            document.getElementById('btn-ejecutar-ia').disabled = false;
+            
+            if (!document.getElementById('input-prompt-ia').value.trim()) {
+                restablecerPromptPorDefecto();
             }
 
+            imagenBase64IA = null;
+            cambiarModoIA('foto');
+            document.getElementById('modal-ia-import').classList.remove('hidden');
+        }
+
+        function cerrarModalIAImport() {
+            document.getElementById('modal-ia-import').classList.add('hidden');
+        }
+
+        async function ejecutarAccionIA() {
             const apiKeyInput = document.getElementById('input-api-key-gemini');
             const apiKey = apiKeyInput.value.trim();
-
             const modeloInput = document.getElementById('input-modelo-gemini');
             const modelo = (modeloInput ? modeloInput.value.trim() : '') || 'gemini-3.1-pro-preview';
 
             if (!apiKey) {
-                alert('Introduce una clave API de Gemini. Puedes conseguir una gratuita en 30 segundos pulsando en el enlace "Obtener clave".');
+                alert('Introduce una clave API de Gemini. Puedes conseguir una gratuita pulsando en "Obtener clave".');
                 apiKeyInput.focus();
                 return;
             }
@@ -1270,8 +1352,23 @@
             localStorage.setItem('GEMINI_API_KEY', apiKey);
             localStorage.setItem('GEMINI_MODEL', modelo);
 
+            if (modoIASeleccionado === 'foto') {
+                if (!imagenBase64IA) {
+                    alert('Por favor, selecciona primero una fotografía o captura del horario.');
+                    return;
+                }
+                await procesarImportacionFotoIA(apiKey, modelo);
+            } else {
+                await procesarReorganizacionPromptIA(apiKey, modelo);
+            }
+        }
+
+        async function procesarImportacionFotoIA(apiKey, modelo) {
             const estadoCarga = document.getElementById('estado-carga-ia');
+            const textoCarga = document.getElementById('texto-carga-ia');
             const btnEjecutar = document.getElementById('btn-ejecutar-ia');
+
+            textoCarga.textContent = 'Analizando cuadrícula fotográfica y reconociendo actividades...';
             estadoCarga.classList.remove('hidden');
             btnEjecutar.disabled = true;
 
@@ -1290,9 +1387,9 @@
                       "horaInicio": "09:00",
                       "horaFin": "10:00",
                       "dias": {
-                        "lunes": [{"actividad": "NOMBRE", "sala": "S7"}],
+                        "lunes": [{"actividad": "NOMBRE", "sala": "S7", "monitores": []}],
                         "martes": [],
-                        "miercoles": [{"actividad": "OTRA ACTIVIDAD", "sala": ""}],
+                        "miercoles": [{"actividad": "OTRA ACTIVIDAD", "sala": "", "monitores": []}],
                         "jueves": [],
                         "viernes": [],
                         "sabado": []
@@ -1303,101 +1400,182 @@
             `;
 
             try {
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
-
                 const requestBody = {
-                    contents: [
-                        {
-                            parts: [
-                                { text: promptSistema },
-                                {
-                                    inline_data: {
-                                        mime_type: imagenBase64IA.mimeType,
-                                        data: imagenBase64IA.data
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    generationConfig: {
-                        temperature: 0.1,
-                        response_mime_type: "application/json"
-                    }
+                    contents: [{
+                        parts: [
+                            { text: promptSistema },
+                            { inline_data: { mime_type: imagenBase64IA.mimeType, data: imagenBase64IA.data } }
+                        ]
+                    }],
+                    generationConfig: { temperature: 0.1, response_mime_type: "application/json" }
                 };
 
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.error?.message || `Error al conectar con la IA (${response.status})`);
-                }
-
-                const dataRes = await response.json();
-                const textoGenerado = dataRes.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (!textoGenerado) {
-                    throw new Error('La IA no devolvió ningún contenido legible.');
-                }
-
-                let jsonLimpio = textoGenerado.trim();
-                const firstBrace = jsonLimpio.indexOf('{');
-                const lastBrace = jsonLimpio.lastIndexOf('}');
-                if (firstBrace !== -1 && lastBrace !== -1) {
-                    jsonLimpio = jsonLimpio.substring(firstBrace, lastBrace + 1);
-                }
-
-                const objetoImportado = JSON.parse(jsonLimpio);
-
-                if (!objetoImportado.filas || !Array.isArray(objetoImportado.filas)) {
-                    throw new Error('El formato extraído no coincide con la estructura requerida.');
-                }
-
-                const nuevoCalendario = {
-                    id: 'sem_ia_' + Date.now(),
-                    rango: (objetoImportado.rango || 'Horario Importado con IA').toUpperCase(),
-                    filas: objetoImportado.filas.map((f, fIdx) => {
-                        const diasMapeados = {};
-                        DIAS.forEach(d => {
-                            const arr = (f.dias && Array.isArray(f.dias[d])) ? f.dias[d] : [];
-                            diasMapeados[d] = arr.map(act => ({
-                                actividad: (act.actividad || '').toUpperCase().trim(),
-                                sala: (act.sala || '').toUpperCase().trim(),
-                                monitores: []
-                            }));
-                        });
-
-                        return {
-                            id: `fila_ia_${Date.now()}_${fIdx}`,
-                            horaInicio: f.horaInicio || '09:00',
-                            horaFin: f.horaFin || '10:00',
-                            dias: diasMapeados
-                        };
-                    })
-                };
-
-                appData.semanas.push(nuevoCalendario);
-                appData.semanaActivaId = nuevoCalendario.id;
-
-                sincronizarCatalogosConEventos();
-                guardar();
-                cerrarModalIAImport();
-                render();
-
-                alert(`¡Éxito! Se ha importado el calendario "${nuevoCalendario.rango}" con ${nuevoCalendario.filas.length} franjas horarias.`);
-
+                await llamarApiGeminiYGuardar(apiKey, modelo, requestBody, 'Importado con IA');
             } catch (error) {
                 console.error("Error en importación IA:", error);
-                alert('No se pudo completar la importación con IA:\n\n' + error.message);
+                alert('No se pudo completar la importación:\n\n' + error.message);
             } finally {
                 estadoCarga.classList.add('hidden');
                 btnEjecutar.disabled = false;
             }
         }
 
+        async function procesarReorganizacionPromptIA(apiKey, modelo) {
+            const semanaActual = obtenerSemanaActiva();
+            if (!semanaActual) {
+                alert('No hay ningún calendario activo para reorganizar.');
+                return;
+            }
+
+            const promptUsuario = document.getElementById('input-prompt-ia').value.trim();
+            if (!promptUsuario) {
+                alert('Por favor, escribe las instrucciones o criterios de reorganización.');
+                return;
+            }
+
+            const estadoCarga = document.getElementById('estado-carga-ia');
+            const textoCarga = document.getElementById('texto-carga-ia');
+            const btnEjecutar = document.getElementById('btn-ejecutar-ia');
+
+            textoCarga.textContent = 'Optimizando y reorganizando cuadrante con IA...';
+            estadoCarga.classList.remove('hidden');
+            btnEjecutar.disabled = true;
+
+            const datosActualesSimplificados = {
+                rangoOriginal: semanaActual.rango,
+                monitoresDisponibles: appData.monitores,
+                actividadesDisponibles: appData.actividadesCatalogo,
+                salasDisponibles: appData.salasCatalogo,
+                filas: semanaActual.filas.map(f => ({
+                    horaInicio: f.horaInicio,
+                    horaFin: f.horaFin,
+                    dias: f.dias
+                }))
+            };
+
+            const promptCompleto = `
+                Eres un director técnico deportivo y optimizador de calendarios de gimnasio y piscina.
+                Se te proporciona el JSON completo de un calendario semanal con sus actividades, horas, monitores y salas:
+                
+                DATOS DEL CALENDARIO ACTUAL:
+                ${JSON.stringify(datosActualesSimplificados)}
+
+                INSTRUCCIONES DEL USUARIO PARA LA REORGANIZACIÓN:
+                ${promptUsuario}
+
+                REGLAS OBLIGATORIAS:
+                1. Devuelve un NUEVO calendario reorganizado en formato JSON limpio y válido.
+                2. Conserva los monitores existentes asignados con { "monitor": "Nombre", "asiste": true }.
+                3. El campo "rango" debe titularse "OPTIMIZADO IA: " seguido del nombre original o fecha propuesta.
+                4. SIN texto extra, SIN explicaciones, SIN bloques de markdown.
+
+                ESTRUCTURA EXACTA JSON:
+                {
+                  "rango": "OPTIMIZADO IA: Nombre",
+                  "filas": [
+                    {
+                      "horaInicio": "09:00",
+                      "horaFin": "10:00",
+                      "dias": {
+                        "lunes": [{"actividad": "PUMP", "sala": "S7", "monitores": [{"monitor": "Julia", "asiste": true}]}],
+                        "martes": [],
+                        "miercoles": [],
+                        "jueves": [],
+                        "viernes": [],
+                        "sabado": []
+                      }
+                    }
+                  ]
+                }
+            `;
+
+            try {
+                const requestBody = {
+                    contents: [{ parts: [{ text: promptCompleto }] }],
+                    generationConfig: { temperature: 0.2, response_mime_type: "application/json" }
+                };
+
+                await llamarApiGeminiYGuardar(apiKey, modelo, requestBody, 'Reorganizado con IA');
+            } catch (error) {
+                console.error("Error al reorganizar con IA:", error);
+                alert('No se pudo reorganizar el calendario:\n\n' + error.message);
+            } finally {
+                estadoCarga.classList.add('hidden');
+                btnEjecutar.disabled = false;
+            }
+        }
+
+        async function llamarApiGeminiYGuardar(apiKey, modelo, requestBody, etiquetaExito) {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error?.message || `Error del servicio Gemini (${response.status})`);
+            }
+
+            const dataRes = await response.json();
+            const textoGenerado = dataRes.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!textoGenerado) {
+                throw new Error('La IA no devolvió ningún contenido legible.');
+            }
+
+            let jsonLimpio = textoGenerado.trim();
+            const firstBrace = jsonLimpio.indexOf('{');
+            const lastBrace = jsonLimpio.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                jsonLimpio = jsonLimpio.substring(firstBrace, lastBrace + 1);
+            }
+
+            const objeto = JSON.parse(jsonLimpio);
+
+            if (!objeto.filas || !Array.isArray(objeto.filas)) {
+                throw new Error('La estructura devuelta no contiene el listado de filas esperado.');
+            }
+
+            const nuevoCalendario = {
+                id: 'sem_ia_' + Date.now(),
+                rango: (objeto.rango || 'NUEVO CALENDARIO IA').toUpperCase(),
+                filas: objeto.filas.map((f, fIdx) => {
+                    const diasMapeados = {};
+                    DIAS.forEach(d => {
+                        const arr = (f.dias && Array.isArray(f.dias[d])) ? f.dias[d] : [];
+                        diasMapeados[d] = arr.map(act => ({
+                            actividad: (act.actividad || '').toUpperCase().trim(),
+                            sala: (act.sala || '').toUpperCase().trim(),
+                            monitores: (Array.isArray(act.monitores) && act.monitores.length > 0) 
+                                ? act.monitores.map(m => typeof m === 'object' ? { monitor: m.monitor || '', asiste: m.asiste !== false } : { monitor: String(m), asiste: true })
+                                : []
+                        }));
+                    });
+
+                    return {
+                        id: `fila_ia_${Date.now()}_${fIdx}`,
+                        horaInicio: f.horaInicio || '09:00',
+                        horaFin: f.horaFin || '10:00',
+                        dias: diasMapeados
+                    };
+                })
+            };
+
+            appData.semanas.push(nuevoCalendario);
+            appData.semanaActivaId = nuevoCalendario.id;
+
+            sincronizarCatalogosConEventos();
+            guardar();
+            cerrarModalIAImport();
+            render();
+
+            alert(`¡Éxito! Se ha creado el nuevo calendario "${nuevoCalendario.rango}" (${etiquetaExito}) con ${nuevoCalendario.filas.length} franjas horarias.`);
+        }
+
+       
         function abrirModalBorrarVaciar() {
             const semana = obtenerSemanaActiva();
             if (!semana) return;
