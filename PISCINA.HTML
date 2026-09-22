@@ -1575,7 +1575,8 @@
             render();
         }
 
-        function renderPanelModoRapido() {
+function renderPanelModoRapido() {
+            // 1. ACTIVIDADES
             const contAct = document.getElementById('contenedor-pills-actividades');
             contAct.innerHTML = appData.actividadesCatalogo.map((act, idx) => {
                 const seleccionada = seleccionRapida.actividades.includes(act);
@@ -1586,15 +1587,23 @@
                             ${seleccionada ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
                             <span>${escapeHtml(act)}</span>
                         </span>
-                        <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('actividades', ${idx})" 
-                            title="Eliminar '${escapeHtml(act)}' del listado" 
-                            class="ml-0.5 opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-black/20 rounded px-1 transition text-[10px] cursor-pointer">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        <div class="flex items-center gap-0.5 ml-1 opacity-70 group-hover:opacity-100">
+                            <button type="button" onclick="event.stopPropagation(); editarActividadGlobal(${idx})" 
+                                title="Editar nombre de '${escapeHtml(act)}'" 
+                                class="hover:text-amber-300 hover:bg-black/30 rounded px-1 text-[9.5px] cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('actividades', ${idx})" 
+                                title="Eliminar '${escapeHtml(act)}' del listado" 
+                                class="hover:text-red-400 hover:bg-black/30 rounded px-1 text-[9.5px] cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
 
+            // 2. MONITORES
             const contMon = document.getElementById('contenedor-pills-monitores');
             contMon.innerHTML = appData.monitores.map((mon, idx) => {
                 const seleccionado = seleccionRapida.monitores.includes(mon);
@@ -1606,15 +1615,23 @@
                             ${seleccionado ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
                             <span style="color: ${seleccionado ? '#022c22' : colMon};">${escapeHtml(mon)}</span>
                         </span>
-                        <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('monitores', ${idx})" 
-                            title="Eliminar a '${escapeHtml(mon)}' de la lista" 
-                            class="ml-0.5 opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-black/20 rounded px-1 transition text-[10px] cursor-pointer">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        <div class="flex items-center gap-0.5 ml-1 opacity-70 group-hover:opacity-100">
+                            <button type="button" onclick="event.stopPropagation(); editarMonitorGlobal(${idx})" 
+                                title="Editar nombre de '${escapeHtml(mon)}'" 
+                                class="hover:text-amber-300 hover:bg-black/30 rounded px-1 text-[9.5px] cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('monitores', ${idx})" 
+                                title="Eliminar a '${escapeHtml(mon)}' de la lista" 
+                                class="hover:text-red-400 hover:bg-black/30 rounded px-1 text-[9.5px] cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
 
+            // 3. SALAS
             const contSal = document.getElementById('contenedor-pills-salas');
             contSal.innerHTML = appData.salasCatalogo.map((sala, idx) => {
                 const seleccionada = (seleccionRapida.sala === sala);
@@ -1625,11 +1642,18 @@
                             ${seleccionada ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
                             <span>${escapeHtml(sala)}</span>
                         </span>
-                        <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('sala', ${idx})" 
-                            title="Eliminar sala '${escapeHtml(sala)}' del listado" 
-                            class="ml-0.5 opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-black/20 rounded px-1 transition text-[10px] cursor-pointer">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        <div class="flex items-center gap-0.5 ml-1 opacity-70 group-hover:opacity-100">
+                            <button type="button" onclick="event.stopPropagation(); editarSalaGlobal(${idx})" 
+                                title="Editar sala '${escapeHtml(sala)}'" 
+                                class="hover:text-amber-300 hover:bg-black/30 rounded px-1 text-[9.5px] cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" onclick="event.stopPropagation(); eliminarElementoRapido('sala', ${idx})" 
+                                title="Eliminar sala '${escapeHtml(sala)}' del listado" 
+                                class="hover:text-red-400 hover:bg-black/30 rounded px-1 text-[9.5px] cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -1687,6 +1711,153 @@
                 }
             }
             renderPanelModoRapido();
+        }
+
+        // ==========================================
+        // EDICIÓN CON PROPAGACIÓN EN TODOS LOS CALENDARIOS
+        // ==========================================
+
+        function editarActividadGlobal(idx) {
+            const nombreActual = appData.actividadesCatalogo[idx];
+            if (!nombreActual) return;
+
+            let nuevoNombre = prompt(`Editar nombre de la actividad "${nombreActual}":`, nombreActual);
+            if (nuevoNombre === null) return;
+            nuevoNombre = nuevoNombre.trim().toUpperCase();
+            if (!nuevoNombre || nuevoNombre === nombreActual) return;
+
+            // Validar duplicados en catálogo
+            const existeOtra = appData.actividadesCatalogo.some((a, i) => i !== idx && a === nuevoNombre);
+            if (existeOtra) {
+                alert(`Ya existe la actividad "${nuevoNombre}".`);
+                return;
+            }
+
+            // 1. Actualizar en el catálogo
+            appData.actividadesCatalogo[idx] = nuevoNombre;
+
+            // 2. Propagar en TODOS los calendarios y semanas
+            (appData.semanas || []).forEach(sem => {
+                (sem.filas || []).forEach(f => {
+                    DIAS.forEach(d => {
+                        (f.dias[d] || []).forEach(act => {
+                            if ((act.actividad || '').trim().toUpperCase() === nombreActual) {
+                                act.actividad = nuevoNombre;
+                            }
+                        });
+                    });
+                });
+            });
+
+            // 3. Actualizar selección rápida si estaba marcada
+            const posSel = seleccionRapida.actividades.indexOf(nombreActual);
+            if (posSel >= 0) {
+                seleccionRapida.actividades[posSel] = nuevoNombre;
+            }
+
+            // 4. Actualizar filtro/resalte si estaba activo
+            if (actividadResaltada && actividadResaltada === nombreActual) {
+                actividadResaltada = nuevoNombre;
+            }
+
+            guardar();
+            renderPanelModoRapido();
+            render();
+        }
+
+        function editarMonitorGlobal(idx) {
+            const nombreActual = appData.monitores[idx];
+            if (!nombreActual) return;
+
+            let nuevoNombre = prompt(`Editar nombre del monitor "${nombreActual}":`, nombreActual);
+            if (nuevoNombre === null) return;
+            nuevoNombre = nuevoNombre.trim();
+            if (!nuevoNombre || nuevoNombre === nombreActual) return;
+
+            const normalizado = nuevoNombre.charAt(0).toUpperCase() + nuevoNombre.slice(1);
+
+            // Validar duplicados en catálogo
+            const existeOtro = appData.monitores.some((m, i) => i !== idx && m.toLowerCase() === normalizado.toLowerCase());
+            if (existeOtro) {
+                alert(`Ya existe el monitor "${normalizado}".`);
+                return;
+            }
+
+            // 1. Actualizar catálogo
+            appData.monitores[idx] = normalizado;
+
+            // 2. Propagar en TODOS los calendarios y semanas
+            (appData.semanas || []).forEach(sem => {
+                (sem.filas || []).forEach(f => {
+                    DIAS.forEach(d => {
+                        (f.dias[d] || []).forEach(act => {
+                            (act.monitores || []).forEach(asig => {
+                                if ((asig.monitor || '').toLowerCase() === nombreActual.toLowerCase()) {
+                                    asig.monitor = normalizado;
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+
+            // 3. Actualizar selección rápida si estaba seleccionada
+            const posSel = seleccionRapida.monitores.indexOf(nombreActual);
+            if (posSel >= 0) {
+                seleccionRapida.monitores[posSel] = normalizado;
+            }
+
+            // 4. Actualizar resalte si estaba activo
+            if (monitorResaltado && monitorResaltado.toLowerCase() === nombreActual.toLowerCase()) {
+                monitorResaltado = normalizado;
+            }
+
+            guardar();
+            renderPanelModoRapido();
+            renderListaMonitoresModal();
+            render();
+        }
+
+        function editarSalaGlobal(idx) {
+            const nombreActual = appData.salasCatalogo[idx];
+            if (!nombreActual) return;
+
+            let nuevoNombre = prompt(`Editar código/nombre de la sala "${nombreActual}":`, nombreActual);
+            if (nuevoNombre === null) return;
+            nuevoNombre = nuevoNombre.trim().toUpperCase();
+            if (!nuevoNombre || nuevoNombre === nombreActual) return;
+
+            // Validar duplicados en catálogo
+            const existeOtra = appData.salasCatalogo.some((s, i) => i !== idx && s === nuevoNombre);
+            if (existeOtra) {
+                alert(`Ya existe la sala "${nuevoNombre}".`);
+                return;
+            }
+
+            // 1. Actualizar catálogo
+            appData.salasCatalogo[idx] = nuevoNombre;
+
+            // 2. Propagar en TODOS los calendarios y semanas
+            (appData.semanas || []).forEach(sem => {
+                (sem.filas || []).forEach(f => {
+                    DIAS.forEach(d => {
+                        (f.dias[d] || []).forEach(act => {
+                            if ((act.sala || '').trim().toUpperCase() === nombreActual) {
+                                act.sala = nuevoNombre;
+                            }
+                        });
+                    });
+                });
+            });
+
+            // 3. Actualizar selección rápida si estaba seleccionada
+            if (seleccionRapida.sala === nombreActual) {
+                seleccionRapida.sala = nuevoNombre;
+            }
+
+            guardar();
+            renderPanelModoRapido();
+            render();
         }
 
         function eliminarElementoRapido(tipo, indice) {
