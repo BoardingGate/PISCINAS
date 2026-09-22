@@ -2841,6 +2841,63 @@
             document.getElementById('modal-gestion-monitores').classList.add('hidden');
         }
 
+
+        function editarMonitorGlobal(index) {
+            const nombreActual = appData.monitores[index];
+            if (!nombreActual) return;
+
+            let nuevoNombre = prompt(`Modificar nombre del monitor "${nombreActual}":`, nombreActual);
+            if (nuevoNombre === null) return; // Si el usuario pulsa cancelar
+
+            nuevoNombre = nuevoNombre.trim();
+            if (!nuevoNombre || nuevoNombre === nombreActual) return;
+
+            // Formato con inicial mayúscula
+            const normalizado = nuevoNombre.charAt(0).toUpperCase() + nuevoNombre.slice(1);
+
+            // Validar que no exista otro monitor con el mismo nombre
+            const existeOtro = appData.monitores.some((m, idx) => idx !== index && m.toLowerCase() === normalizado.toLowerCase());
+            if (existeOtro) {
+                alert(`Ya existe un monitor registrado con el nombre "${normalizado}".`);
+                return;
+            }
+
+            // 1. Actualizar en el catálogo general de monitores
+            appData.monitores[index] = normalizado;
+
+            // 2. Propagar el cambio en TODOS los calendarios/semanas y en todas las clases asignadas
+            (appData.semanas || []).forEach(semana => {
+                (semana.filas || []).forEach(fila => {
+                    DIAS.forEach(dia => {
+                        (fila.dias[dia] || []).forEach(act => {
+                            (act.monitores || []).forEach(asig => {
+                                if (asig.monitor.toLowerCase() === nombreActual.toLowerCase()) {
+                                    asig.monitor = normalizado;
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+
+            // 3. Actualizar la selección rápida si estaba marcado
+            const posRapida = seleccionRapida.monitores.indexOf(nombreActual);
+            if (posRapida >= 0) {
+                seleccionRapida.monitores[posRapida] = normalizado;
+            }
+
+            // 4. Actualizar el filtro/resalte activo si coincidía con este monitor
+            if (monitorResaltado && monitorResaltado.toLowerCase() === nombreActual.toLowerCase()) {
+                monitorResaltado = normalizado;
+            }
+
+            // 5. Guardar en almacenamiento local y refrescar vistas
+            guardar();
+            renderListaMonitoresModal();
+            if (modoRapidoActivo) renderPanelModoRapido();
+            render();
+        }
+
         function renderListaMonitoresModal() {
             const cont = document.getElementById('lista-monitores-modal');
             if (appData.monitores.length === 0) {
@@ -2850,11 +2907,16 @@
             cont.innerHTML = appData.monitores.map((m, idx) => {
                 const colorM = obtenerColorTextoMonitor(m);
                 return `
-                    <div class="flex justify-between items-center py-1 px-1">
+                    <div class="flex justify-between items-center py-1 px-1 hover:bg-slate-50 rounded">
                         <span class="text-xs font-black" style="color: ${colorM};">${idx + 1}. ${escapeHtml(m)}</span>
-                        <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1 cursor-pointer" title="Eliminar">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="editarMonitorGlobal(${idx})" class="text-cyan-600 hover:text-cyan-800 text-xs p-1 transition cursor-pointer" title="Editar nombre de ${escapeHtml(m)}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="eliminarMonitorGlobal(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1 transition cursor-pointer" title="Eliminar">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
